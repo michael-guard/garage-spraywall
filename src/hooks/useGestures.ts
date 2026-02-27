@@ -43,8 +43,9 @@ export function useGestures({ onTap, onDoubleTap, containerRef }: GestureCallbac
   const isPanning = useRef(false)
   const pinchStartDistance = useRef(0)
   const pinchStartScale = useRef(1)
-  const pinchStartMidpoint = useRef({ x: 0, y: 0 })
-  const pinchStartTranslate = useRef({ x: 0, y: 0 })
+  // Focal point in content-space (pixels relative to unscaled content)
+  const pinchFocalPoint = useRef({ x: 0, y: 0 })
+  const pinchContainerRect = useRef<DOMRect | null>(null)
   const panStartPoint = useRef({ x: 0, y: 0 })
   const panStartTranslate = useRef({ x: 0, y: 0 })
   const touchStartTime = useRef(0)
@@ -53,8 +54,8 @@ export function useGestures({ onTap, onDoubleTap, containerRef }: GestureCallbac
   const lastTapPos = useRef({ x: 0, y: 0 })
   const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const transformRef = useRef(transform)
-  // Track if a resize is in progress (set by WallCanvas)
-  const isResizing = useRef(false)
+  // Track if a hold drag is in progress (set by WallCanvas)
+  const isDraggingHold = useRef(false)
 
   // Keep ref in sync with state
   transformRef.current = transform
@@ -88,9 +89,23 @@ export function useGestures({ onTap, onDoubleTap, containerRef }: GestureCallbac
         const t = transformRef.current
         pinchStartDistance.current = getDistance(e.touches[0], e.touches[1])
         pinchStartScale.current = t.scale
-        pinchStartMidpoint.current = getMidpoint(e.touches[0], e.touches[1])
-        pinchStartTranslate.current = { x: t.translateX, y: t.translateY }
-      } else if (e.touches.length === 1 && !isResizing.current) {
+
+        // Store the container rect at pinch start (doesn't change during pinch)
+        const container = containerRef.current
+        if (container) {
+          pinchContainerRect.current = container.getBoundingClientRect()
+        }
+
+        // Compute focal point in content space
+        const mid = getMidpoint(e.touches[0], e.touches[1])
+        const cr = pinchContainerRect.current
+        if (cr) {
+          pinchFocalPoint.current = {
+            x: (mid.x - cr.left - t.translateX) / t.scale,
+            y: (mid.y - cr.top - t.translateY) / t.scale,
+          }
+        }
+      } else if (e.touches.length === 1 && !isDraggingHold.current) {
         // Record for potential pan or tap
         touchStartTime.current = Date.now()
         touchStartPos.current = {
@@ -100,17 +115,17 @@ export function useGestures({ onTap, onDoubleTap, containerRef }: GestureCallbac
         isPanning.current = false
       }
     },
-    []
+    [containerRef]
   )
 
   const onTouchMove = useCallback(
     (e: React.TouchEvent) => {
       e.preventDefault()
 
-      if (isResizing.current) return
+      if (isDraggingHold.current) return
 
       if (isPinching.current && e.touches.length === 2) {
-        // Handle pinch zoom
+        // Handle pinch zoom — zoom toward focal point
         const newDistance = getDistance(e.touches[0], e.touches[1])
         const ratio = newDistance / pinchStartDistance.current
         const newScale = Math.max(
@@ -118,26 +133,23 @@ export function useGestures({ onTap, onDoubleTap, containerRef }: GestureCallbac
           Math.min(MAX_SCALE, pinchStartScale.current * ratio)
         )
 
-        // Zoom toward the pinch midpoint
-        const currentMidpoint = getMidpoint(e.touches[0], e.touches[1])
-        const scaleChange = newScale / pinchStartScale.current
+        const cr = pinchContainerRect.current
+        if (cr) {
+          // Current midpoint of fingers
+          const currentMid = getMidpoint(e.touches[0], e.touches[1])
 
-        const newTx =
-          currentMidpoint.x -
-          pinchStartMidpoint.current.x +
-          pinchStartTranslate.current.x * scaleChange
-        const newTy =
-          currentMidpoint.y -
-          pinchStartMidpoint.current.y +
-          pinchStartTranslate.current.y * scaleChange
+          // New translate keeps the focal point under the current midpoint
+          const newTx = (currentMid.x - cr.left) - pinchFocalPoint.current.x * newScale
+          const newTy = (currentMid.y - cr.top) - pinchFocalPoint.current.y * newScale
 
-        const clamped = clampTranslate(newTx, newTy, newScale)
+          const clamped = clampTranslate(newTx, newTy, newScale)
 
-        setTransform({
-          scale: newScale,
-          translateX: clamped.tx,
-          translateY: clamped.ty,
-        })
+          setTransform({
+            scale: newScale,
+            translateX: clamped.tx,
+            translateY: clamped.ty,
+          })
+        }
       } else if (e.touches.length === 1 && !isPinching.current) {
         // Handle pan
         const dx = e.touches[0].clientX - touchStartPos.current.x
@@ -182,7 +194,7 @@ export function useGestures({ onTap, onDoubleTap, containerRef }: GestureCallbac
     (e: React.TouchEvent) => {
       e.preventDefault()
 
-      if (isResizing.current) return
+      if (isDraggingHold.current) return
 
       // If was pinching and fingers lifted, exit pinch
       if (isPinching.current) {
@@ -244,6 +256,6 @@ export function useGestures({ onTap, onDoubleTap, containerRef }: GestureCallbac
       onTouchMove,
       onTouchEnd,
     },
-    isResizing,
+    isDraggingHold,
   }
 }

@@ -3,12 +3,19 @@ import type { Hold } from '../types'
 interface HoldCircleProps {
   hold: Hold
   tickCount?: 1 | 2 // for start holds: 2 ticks if 1 start, 1 tick each if 2 starts
+  naturalWidth: number
+  naturalHeight: number
 }
 
-const STROKE_WIDTH = 0.5
-
-export default function HoldCircle({ hold, tickCount }: HoldCircleProps) {
+export default function HoldCircle({ hold, tickCount, naturalWidth, naturalHeight }: HoldCircleProps) {
   const { x, y, radius, type } = hold
+
+  // Convert percentage coords to pixel coords
+  const cx = (x / 100) * naturalWidth
+  const cy = (y / 100) * naturalHeight
+  const r = (radius / 100) * naturalWidth
+
+  const strokeWidth = naturalWidth * 0.004
 
   const getStroke = () => {
     switch (type) {
@@ -37,40 +44,41 @@ export default function HoldCircle({ hold, tickCount }: HoldCircleProps) {
   const isStart = type === 'start_hand' || type === 'start_foot'
   const ticks = isStart ? (tickCount ?? 2) : 0
 
-  const tickOffset = radius + 0.8
-  const tickLength = 1.2
+  const tickOffset = r + naturalWidth * 0.006
+  const tickLength = naturalWidth * 0.012
+  const tickSpacing = naturalWidth * 0.005
 
   return (
     <g>
       {/* Main circle */}
       <circle
-        cx={x}
-        cy={y}
-        r={radius}
+        cx={cx}
+        cy={cy}
+        r={r}
         stroke={getStroke()}
-        strokeWidth={STROKE_WIDTH}
+        strokeWidth={strokeWidth}
         fill={getFill()}
       />
 
       {/* Tick marks for start holds */}
       {ticks >= 1 && (
         <line
-          x1={x - 0.5}
-          y1={y + tickOffset}
-          x2={x - 0.5}
-          y2={y + tickOffset + tickLength}
+          x1={cx - tickSpacing}
+          y1={cy + tickOffset}
+          x2={cx - tickSpacing}
+          y2={cy + tickOffset + tickLength}
           stroke={getStroke()}
-          strokeWidth={STROKE_WIDTH * 0.8}
+          strokeWidth={strokeWidth * 0.8}
         />
       )}
       {ticks >= 2 && (
         <line
-          x1={x + 0.5}
-          y1={y + tickOffset}
-          x2={x + 0.5}
-          y2={y + tickOffset + tickLength}
+          x1={cx + tickSpacing}
+          y1={cy + tickOffset}
+          x2={cx + tickSpacing}
+          y2={cy + tickOffset + tickLength}
           stroke={getStroke()}
-          strokeWidth={STROKE_WIDTH * 0.8}
+          strokeWidth={strokeWidth * 0.8}
         />
       )}
     </g>

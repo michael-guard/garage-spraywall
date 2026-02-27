@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react'
+import { useRef, useCallback, useState } from 'react'
 import { useGestures } from '../hooks/useGestures'
 import HoldCircle from './HoldCircle'
 import type { Hold } from '../types'
@@ -15,9 +15,7 @@ interface WallCanvasProps {
 }
 
 const DEFAULT_RADIUS = 2.5
-const MIN_RADIUS = 1
-const MAX_RADIUS = 10
-const EDGE_TOLERANCE = 2 // viewBox units for resize hit zone
+const LONG_PRESS_MS = 200
 
 let holdIdCounter = 0
 function nextHoldId(): string {
@@ -34,7 +32,17 @@ export default function WallCanvas({
 }: WallCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const imageRef = useRef<HTMLImageElement>(null)
-  const resizingHoldId = useRef<string | null>(null)
+  const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(null)
+
+  // Hold-drag state
+  const draggingHoldId = useRef<string | null>(null)
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const dragTouchStart = useRef({ x: 0, y: 0 })
+
+  const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget
+    setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight })
+  }, [])
 
   // Convert screen coordinates to image percentage coordinates
   const screenToImageCoords = useCallback(
@@ -79,26 +87,6 @@ export default function WallCanvas({
     [holds]
   )
 
-  // Check if a point is on the edge of a hold (for resize)
-  const findHoldEdge = useCallback(
-    (px: number, py: number): Hold | null => {
-      for (let i = holds.length - 1; i >= 0; i--) {
-        const hold = holds[i]
-        const dx = px - hold.x
-        const dy = py - hold.y
-        const dist = Math.sqrt(dx * dx + dy * dy)
-        if (
-          dist >= hold.radius - EDGE_TOLERANCE &&
-          dist <= hold.radius + EDGE_TOLERANCE
-        ) {
-          return hold
-        }
-      }
-      return null
-    },
-    [holds]
-  )
-
   const handleTap = useCallback(
     (screenX: number, screenY: number) => {
       if (mode === 'view') return
@@ -114,12 +102,12 @@ export default function WallCanvas({
           // Remove the hold
           onHoldsChange?.(holds.filter((h) => h.id !== hitHold.id))
         } else {
-          // Place a new hand hold
+          // Place a new hand hold — radius is zoom-relative
           const newHold: Hold = {
             id: nextHoldId(),
             x: coords.x,
             y: coords.y,
-            radius: DEFAULT_RADIUS,
+            radius: DEFAULT_RADIUS / transformRef.current.scale,
             type: 'hand',
           }
           onHoldsChange?.([...holds, newHold])
@@ -152,7 +140,7 @@ export default function WallCanvas({
     [mode, holds, onHoldsChange, screenToImageCoords, findHoldAtPoint]
   )
 
-  const { transform, handlers, isResizing } = useGestures({
+  const { transform, handlers, isDraggingHold } = useGestures({
     onTap: handleTap,
     onDoubleTap: handleDoubleTap,
     containerRef,
@@ -162,8 +150,8 @@ export default function WallCanvas({
   const transformRef = useRef(transform)
   transformRef.current = transform
 
-  // Handle resize touch events
-  const handleResizeTouchStart = useCallback(
+  // Hold-and-drag to move circles
+  const handleDragTouchStart = useCallback(
     (e: React.TouchEvent) => {
       if (mode !== 'create-step1' || e.touches.length !== 1) return
 
@@ -174,18 +162,36 @@ export default function WallCanvas({
       )
       if (!coords) return
 
-      const edgeHold = findHoldEdge(coords.x, coords.y)
-      if (edgeHold) {
-        resizingHoldId.current = edgeHold.id
-        isResizing.current = true
-      }
+      const hitHold = findHoldAtPoint(coords.x, coords.y)
+      if (!hitHold) return
+
+      // Record start position and start long-press timer
+      dragTouchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+
+      longPressTimer.current = setTimeout(() => {
+        draggingHoldId.current = hitHold.id
+        isDraggingHold.current = true
+      }, LONG_PRESS_MS)
     },
-    [mode, screenToImageCoords, findHoldEdge, isResizing]
+    [mode, screenToImageCoords, findHoldAtPoint, isDraggingHold]
   )
 
-  const handleResizeTouchMove = useCallback(
+  const handleDragTouchMove = useCallback(
     (e: React.TouchEvent) => {
-      if (!resizingHoldId.current || e.touches.length !== 1) return
+      if (e.touches.length !== 1) return
+
+      // If long-press timer is still running, check if finger moved too much
+      if (longPressTimer.current && !isDraggingHold.current) {
+        const dx = e.touches[0].clientX - dragTouchStart.current.x
+        const dy = e.touches[0].clientY - dragTouchStart.current.y
+        if (Math.abs(dx) + Math.abs(dy) > 10) {
+          clearTimeout(longPressTimer.current)
+          longPressTimer.current = null
+        }
+        return
+      }
+
+      if (!draggingHoldId.current) return
 
       const coords = screenToImageCoords(
         e.touches[0].clientX,
@@ -194,61 +200,61 @@ export default function WallCanvas({
       )
       if (!coords) return
 
-      const hold = holds.find((h) => h.id === resizingHoldId.current)
-      if (!hold) return
-
-      const dx = coords.x - hold.x
-      const dy = coords.y - hold.y
-      const newRadius = Math.max(
-        MIN_RADIUS,
-        Math.min(MAX_RADIUS, Math.sqrt(dx * dx + dy * dy))
-      )
+      // Clamp to image bounds
+      const clampedX = Math.max(0, Math.min(100, coords.x))
+      const clampedY = Math.max(0, Math.min(100, coords.y))
 
       onHoldsChange?.(
         holds.map((h) =>
-          h.id === resizingHoldId.current ? { ...h, radius: newRadius } : h
+          h.id === draggingHoldId.current ? { ...h, x: clampedX, y: clampedY } : h
         )
       )
     },
-    [holds, onHoldsChange, screenToImageCoords]
+    [holds, onHoldsChange, screenToImageCoords, isDraggingHold]
   )
 
-  const handleResizeTouchEnd = useCallback(() => {
-    resizingHoldId.current = null
-    isResizing.current = false
-  }, [isResizing])
+  const handleDragTouchEnd = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current)
+      longPressTimer.current = null
+    }
+    draggingHoldId.current = null
+    isDraggingHold.current = false
+  }, [isDraggingHold])
 
-  // Combine gesture handlers with resize handlers
+  // Combine gesture handlers with drag handlers
   const combinedTouchStart = useCallback(
     (e: React.TouchEvent) => {
-      handleResizeTouchStart(e)
-      if (!isResizing.current) {
+      handleDragTouchStart(e)
+      if (!isDraggingHold.current) {
         handlers.onTouchStart(e)
       }
     },
-    [handleResizeTouchStart, handlers, isResizing]
+    [handleDragTouchStart, handlers, isDraggingHold]
   )
 
   const combinedTouchMove = useCallback(
     (e: React.TouchEvent) => {
-      if (isResizing.current) {
-        handleResizeTouchMove(e)
+      if (isDraggingHold.current) {
+        handleDragTouchMove(e)
       } else {
+        handleDragTouchMove(e) // still check for long-press cancel
         handlers.onTouchMove(e)
       }
     },
-    [handleResizeTouchMove, handlers, isResizing]
+    [handleDragTouchMove, handlers, isDraggingHold]
   )
 
   const combinedTouchEnd = useCallback(
     (e: React.TouchEvent) => {
-      if (isResizing.current) {
-        handleResizeTouchEnd()
+      if (isDraggingHold.current) {
+        handleDragTouchEnd()
       } else {
+        handleDragTouchEnd() // clean up timer
         handlers.onTouchEnd(e)
       }
     },
-    [handleResizeTouchEnd, handlers, isResizing]
+    [handleDragTouchEnd, handlers, isDraggingHold]
   )
 
   // Count start holds for tick mark calculation
@@ -258,6 +264,9 @@ export default function WallCanvas({
     if (hold.type === 'start_hand') return startHandCount >= 2 ? 1 : 2
     return 2
   }
+
+  const nw = naturalSize?.w ?? 100
+  const nh = naturalSize?.h ?? 100
 
   return (
     <div
@@ -281,29 +290,51 @@ export default function WallCanvas({
             alt="Wall"
             className="w-full block"
             draggable={false}
+            onLoad={handleImageLoad}
           />
-          <svg
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-            className="absolute inset-0 w-full h-full"
-          >
-            {darkOverlay && (
-              <rect
-                x="0"
-                y="0"
-                width="100"
-                height="100"
-                fill="rgba(0, 0, 0, 0.55)"
-              />
-            )}
-            {holds.map((hold) => (
-              <HoldCircle
-                key={hold.id}
-                hold={hold}
-                tickCount={getTickCount(hold)}
-              />
-            ))}
-          </svg>
+          {naturalSize && (
+            <svg
+              viewBox={`0 0 ${nw} ${nh}`}
+              className="absolute inset-0 w-full h-full"
+            >
+              {darkOverlay && (
+                <>
+                  <defs>
+                    <mask id="overlay-mask">
+                      {/* White = show overlay, black = punch through */}
+                      <rect x="0" y="0" width={nw} height={nh} fill="white" />
+                      {holds.map((hold) => (
+                        <circle
+                          key={hold.id}
+                          cx={(hold.x / 100) * nw}
+                          cy={(hold.y / 100) * nh}
+                          r={(hold.radius / 100) * nw}
+                          fill="black"
+                        />
+                      ))}
+                    </mask>
+                  </defs>
+                  <rect
+                    x="0"
+                    y="0"
+                    width={nw}
+                    height={nh}
+                    fill="rgba(0, 0, 0, 0.55)"
+                    mask="url(#overlay-mask)"
+                  />
+                </>
+              )}
+              {holds.map((hold) => (
+                <HoldCircle
+                  key={hold.id}
+                  hold={hold}
+                  tickCount={getTickCount(hold)}
+                  naturalWidth={nw}
+                  naturalHeight={nh}
+                />
+              ))}
+            </svg>
+          )}
         </div>
       </div>
     </div>

@@ -63,7 +63,7 @@ export default function CanvasTestPage() {
           onClick={() => setHolds([])}
           className="text-red-400 text-sm"
         >
-          Clear
+          Clear All
         </button>
       </div>
 
@@ -79,7 +79,7 @@ export default function CanvasTestPage() {
       {/* Debug info */}
       <div className="p-3 bg-gray-900 text-xs text-gray-500">
         <p>Tap: place hold | Tap hold: remove | Double-tap hold: hand↔foot</p>
-        <p>Pinch: zoom | Drag: pan | Drag edge: resize</p>
+        <p>Pinch: zoom | Drag: pan | Long-press hold: move</p>
       </div>
     </div>
   )
