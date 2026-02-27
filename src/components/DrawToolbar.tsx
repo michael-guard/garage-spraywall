@@ -58,8 +58,12 @@ export default function DrawToolbar({
         >
           <div className="flex flex-col items-center gap-0.5">
             <div
-              className="bg-white rounded-full"
-              style={{ width: 4 + strokeWidth * 3, height: 4 + strokeWidth * 3 }}
+              className="rounded-full"
+              style={{
+                width: 4 + strokeWidth * 3,
+                height: 4 + strokeWidth * 3,
+                backgroundColor: holdType === 'hand' ? 'white' : 'dodgerblue',
+              }}
             />
           </div>
         </button>

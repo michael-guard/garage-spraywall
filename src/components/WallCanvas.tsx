@@ -16,7 +16,8 @@ interface WallCanvasProps {
 const MIN_POINTS = 5
 const MIN_POINT_DISTANCE = 0.3 // percentage of image width
 // Slider 1-5 maps to base stroke width in percentage of image width
-const STROKE_BASE = 0.15
+// Slider 1 = 0.75%, slider 5 = 3.75%
+const STROKE_BASE = 0.75
 
 let holdIdCounter = 0
 function nextHoldId(): string {
@@ -42,6 +43,12 @@ export default function WallCanvas({
   // strokeRevision triggers re-renders when active stroke points change (stored in ref)
   const [strokeRevision, setStrokeRevision] = useState(0)
   void strokeRevision // read to satisfy TS — value is used implicitly via re-render
+
+  // Refs to avoid stale closures in draw callbacks
+  const holdTypeRef = useRef(holdType)
+  holdTypeRef.current = holdType
+  const strokeWidthRef = useRef(strokeWidth)
+  strokeWidthRef.current = strokeWidth
 
   const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget
@@ -78,11 +85,11 @@ export default function WallCanvas({
       if (!coords) return
 
       activeStrokePoints.current = [coords]
-      activeStrokeType.current = holdType
-      activeStrokeWidth.current = (strokeWidth * STROKE_BASE) / transformRef.current.scale
+      activeStrokeType.current = holdTypeRef.current
+      activeStrokeWidth.current = (strokeWidthRef.current * STROKE_BASE) / transformRef.current.scale
       setStrokeRevision((r) => r + 1)
     },
-    [screenToImageCoords, holdType, strokeWidth]
+    [screenToImageCoords]
   )
 
   const handleDrawMove = useCallback(
