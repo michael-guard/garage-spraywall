@@ -1,4 +1,9 @@
+import { useNavigate, useLocation } from 'react-router-dom'
+
 export default function BottomBar() {
+  const navigate = useNavigate()
+  const location = useLocation()
+
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 px-4 py-3 flex items-center justify-around">
       <button className="text-gray-400 text-xs flex flex-col items-center gap-1">
@@ -9,7 +14,12 @@ export default function BottomBar() {
         <span className="text-lg">⚙️</span>
         <span>Filter</span>
       </button>
-      <button className="text-gray-400 text-xs flex flex-col items-center gap-1">
+      <button
+        onClick={() => navigate('/wall')}
+        className={`text-xs flex flex-col items-center gap-1 ${
+          location.pathname === '/wall' ? 'text-blue-400' : 'text-gray-400'
+        }`}
+      >
         <span className="text-lg">🖼️</span>
         <span>Wall</span>
       </button>
