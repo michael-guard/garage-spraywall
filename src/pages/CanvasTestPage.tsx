@@ -2,13 +2,17 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getActiveWallPhoto, type WallPhoto } from '../lib/wallPhotos'
 import WallCanvas from '../components/WallCanvas'
-import type { Hold } from '../types'
+import DrawToolbar from '../components/DrawToolbar'
+import { useUndoRedo } from '../hooks/useUndoRedo'
 
 export default function CanvasTestPage() {
   const navigate = useNavigate()
   const [photo, setPhoto] = useState<WallPhoto | null>(null)
-  const [holds, setHolds] = useState<Hold[]>([])
   const [loading, setLoading] = useState(true)
+  const [holdType, setHoldType] = useState<'hand' | 'foot'>('hand')
+  const [strokeWidth, setStrokeWidth] = useState(3)
+
+  const { holds, addHold, undo, redo, canUndo, canRedo, clearAll } = useUndoRedo()
 
   useEffect(() => {
     async function load() {
@@ -54,13 +58,13 @@ export default function CanvasTestPage() {
           onClick={() => navigate('/')}
           className="text-gray-400 text-sm"
         >
-          ← Back
+          &larr; Back
         </button>
         <span className="text-sm text-gray-300">
-          Canvas Test — {holds.length} hold{holds.length !== 1 ? 's' : ''}
+          Canvas Test &mdash; {holds.length} shape{holds.length !== 1 ? 's' : ''}
         </span>
         <button
-          onClick={() => setHolds([])}
+          onClick={clearAll}
           className="text-red-400 text-sm"
         >
           Clear All
@@ -71,16 +75,23 @@ export default function CanvasTestPage() {
       <WallCanvas
         imageUrl={photo.image_url}
         holds={holds}
-        onHoldsChange={setHolds}
-        mode="create-step1"
+        onAddHold={addHold}
+        holdType={holdType}
+        strokeWidth={strokeWidth}
         darkOverlay
       />
 
-      {/* Debug info */}
-      <div className="p-3 bg-gray-900 text-xs text-gray-500">
-        <p>Tap: place hold | Tap hold: remove | Double-tap hold: hand↔foot</p>
-        <p>Pinch: zoom | Drag: pan | Long-press hold: move</p>
-      </div>
+      {/* Floating toolbar */}
+      <DrawToolbar
+        holdType={holdType}
+        onHoldTypeChange={setHoldType}
+        strokeWidth={strokeWidth}
+        onStrokeWidthChange={setStrokeWidth}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        onUndo={undo}
+        onRedo={redo}
+      />
     </div>
   )
 }
