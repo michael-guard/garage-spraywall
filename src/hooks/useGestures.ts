@@ -67,12 +67,14 @@ export function useGestures({ onTap, onDoubleTap, containerRef }: GestureCallbac
       if (!container) return { tx, ty }
 
       const rect = container.getBoundingClientRect()
-      const maxTx = (rect.width * (scale - 1)) / 2
-      const maxTy = (rect.height * (scale - 1)) / 2
+      // With transformOrigin '0 0', scaled content extends right and down.
+      // tx=0 shows left edge, tx=-(width*(scale-1)) shows right edge.
+      const minTx = -(rect.width * (scale - 1))
+      const minTy = -(rect.height * (scale - 1))
 
       return {
-        tx: Math.max(-maxTx, Math.min(maxTx, tx)),
-        ty: Math.max(-maxTy, Math.min(maxTy, ty)),
+        tx: Math.max(minTx, Math.min(0, tx)),
+        ty: Math.max(minTy, Math.min(0, ty)),
       }
     },
     [containerRef]
