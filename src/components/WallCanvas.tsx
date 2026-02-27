@@ -9,15 +9,13 @@ interface WallCanvasProps {
   holds: Hold[]
   onAddHold: (hold: Hold) => void
   holdType: 'hand' | 'foot'
-  strokeWidth: number // 1-5 slider value
   darkOverlay?: boolean
 }
 
 const MIN_POINTS = 5
 const MIN_POINT_DISTANCE = 0.3 // percentage of image width
-// Slider 1-5 maps to base stroke width in percentage of image width
-// Slider 1 = 0.75%, slider 5 = 3.75%
-const STROKE_BASE = 0.75
+// Fixed stroke width: 2.25% of image width (old middle slider value 3 × 0.75 base)
+const FIXED_STROKE = 2.25
 
 let holdIdCounter = 0
 function nextHoldId(): string {
@@ -29,7 +27,6 @@ export default function WallCanvas({
   holds,
   onAddHold,
   holdType,
-  strokeWidth,
   darkOverlay,
 }: WallCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -44,11 +41,9 @@ export default function WallCanvas({
   const [strokeRevision, setStrokeRevision] = useState(0)
   void strokeRevision // read to satisfy TS — value is used implicitly via re-render
 
-  // Refs to avoid stale closures in draw callbacks
+  // Ref to avoid stale closure in draw callbacks
   const holdTypeRef = useRef(holdType)
   holdTypeRef.current = holdType
-  const strokeWidthRef = useRef(strokeWidth)
-  strokeWidthRef.current = strokeWidth
 
   const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget
@@ -86,7 +81,7 @@ export default function WallCanvas({
 
       activeStrokePoints.current = [coords]
       activeStrokeType.current = holdTypeRef.current
-      activeStrokeWidth.current = (strokeWidthRef.current * STROKE_BASE) / transformRef.current.scale
+      activeStrokeWidth.current = FIXED_STROKE / transformRef.current.scale
       setStrokeRevision((r) => r + 1)
     },
     [screenToImageCoords]

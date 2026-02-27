@@ -10,7 +10,6 @@ export default function CanvasTestPage() {
   const [photo, setPhoto] = useState<WallPhoto | null>(null)
   const [loading, setLoading] = useState(true)
   const [holdType, setHoldType] = useState<'hand' | 'foot'>('hand')
-  const [strokeWidth, setStrokeWidth] = useState(3)
 
   const { holds, addHold, undo, redo, canUndo, canRedo, clearAll } = useUndoRedo()
 
@@ -77,7 +76,6 @@ export default function CanvasTestPage() {
         holds={holds}
         onAddHold={addHold}
         holdType={holdType}
-        strokeWidth={strokeWidth}
         darkOverlay
       />
 
@@ -85,8 +83,6 @@ export default function CanvasTestPage() {
       <DrawToolbar
         holdType={holdType}
         onHoldTypeChange={setHoldType}
-        strokeWidth={strokeWidth}
-        onStrokeWidthChange={setStrokeWidth}
         canUndo={canUndo}
         canRedo={canRedo}
         onUndo={undo}
