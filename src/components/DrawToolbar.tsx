@@ -31,15 +31,19 @@ export default function DrawToolbar({
     >
       {/* Hand/Foot toggle */}
       <button
-        className="w-10 h-10 rounded-full flex items-center justify-center"
+        className="h-10 rounded-full flex items-center justify-center px-3 gap-1.5"
         style={{
-          backgroundColor: holdType === 'hand' ? 'rgba(255,255,255,0.2)' : 'rgba(30,144,255,0.2)',
+          backgroundColor: holdType === 'hand' ? 'rgba(255,255,255,0.25)' : 'rgba(30,144,255,0.25)',
           border: `2px solid ${holdType === 'hand' ? 'white' : 'dodgerblue'}`,
         }}
         onClick={() => onHoldTypeChange(holdType === 'hand' ? 'foot' : 'hand')}
       >
+        <div
+          className="w-3 h-3 rounded-full"
+          style={{ backgroundColor: holdType === 'hand' ? 'white' : 'dodgerblue' }}
+        />
         <span className="text-xs font-bold" style={{ color: holdType === 'hand' ? 'white' : 'dodgerblue' }}>
-          {holdType === 'hand' ? 'H' : 'F'}
+          {holdType === 'hand' ? 'HAND' : 'FOOT'}
         </span>
       </button>
 

@@ -39,7 +39,9 @@ export default function WallCanvas({
   const activeStrokePoints = useRef<Point[]>([])
   const activeStrokeType = useRef<'hand' | 'foot'>('hand')
   const activeStrokeWidth = useRef(0)
+  // strokeRevision triggers re-renders when active stroke points change (stored in ref)
   const [strokeRevision, setStrokeRevision] = useState(0)
+  void strokeRevision // read to satisfy TS — value is used implicitly via re-render
 
   const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget
@@ -187,7 +189,6 @@ export default function WallCanvas({
             <svg
               viewBox={`0 0 ${nw} ${nh}`}
               className="absolute inset-0 w-full h-full"
-              key={strokeRevision} // force re-render for active stroke
             >
               {darkOverlay && (
                 <>
