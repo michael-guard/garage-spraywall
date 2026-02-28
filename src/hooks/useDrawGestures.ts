@@ -28,7 +28,7 @@ function getMidpoint(t1: React.Touch, t2: React.Touch): { x: number; y: number }
 }
 
 const MIN_SCALE = 1
-const MAX_SCALE = 5
+const MAX_SCALE = 10
 
 export function useDrawGestures({
   onDrawStart,

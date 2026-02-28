@@ -36,21 +36,18 @@ export function autoClosePath(points: Point[]): Point[] {
     return points.slice(0, -1) // remove last point; SVG Z will close it
   }
 
-  // Case 2: Find self-intersection near the start (nub trimming)
-  // Walk backward from end, check against first segments
-  const searchStart = Math.min(Math.floor(points.length * 0.2), 50)
-
-  for (let endIdx = points.length - 2; endIdx >= Math.max(points.length - searchStart, searchStart + 1); endIdx--) {
-    for (let startIdx = 0; startIdx < searchStart && startIdx < endIdx - 1; startIdx++) {
+  // Case 2: Find self-intersection (nub trimming)
+  // Walk backward from end — the first intersection found gives the tightest trim.
+  // For each late segment, check against all earlier non-adjacent segments.
+  for (let late = points.length - 2; late >= 2; late--) {
+    for (let early = 0; early < late - 1; early++) {
       const intersection = segmentIntersection(
-        points[endIdx], points[endIdx + 1],
-        points[startIdx], points[startIdx + 1]
+        points[late], points[late + 1],
+        points[early], points[early + 1]
       )
       if (intersection) {
-        // Trim: keep from intersection through to the end intersection
-        // The closed shape runs from the intersection point along startIdx+1..endIdx back to intersection
-        const trimmed = [intersection, ...points.slice(startIdx + 1, endIdx + 1)]
-        return trimmed
+        // Keep the enclosed loop: intersection → points[early+1..late] → closed by SVG Z
+        return [intersection, ...points.slice(early + 1, late + 1)]
       }
     }
   }
@@ -97,15 +94,52 @@ export function simplifyPath(points: Point[], epsilon: number = 0.15): Point[] {
   return [first, last]
 }
 
-// --- SVG path building ---
+// --- SVG path building (smooth Catmull-Rom → cubic Bézier) ---
 
+/**
+ * Build a smooth closed SVG path using Catmull-Rom → cubic Bézier conversion.
+ * The resulting curve passes through all original points but with smooth transitions.
+ */
 export function buildPathD(points: Point[], nw: number, nh: number): string {
   if (points.length === 0) return ''
-  const first = points[0]
-  let d = `M ${(first.x / 100) * nw} ${(first.y / 100) * nh}`
-  for (let i = 1; i < points.length; i++) {
-    d += ` L ${(points[i].x / 100) * nw} ${(points[i].y / 100) * nh}`
+  if (points.length < 3) {
+    // Too few points for smooth curves — fall back to straight lines
+    const first = points[0]
+    let d = `M ${(first.x / 100) * nw} ${(first.y / 100) * nh}`
+    for (let i = 1; i < points.length; i++) {
+      d += ` L ${(points[i].x / 100) * nw} ${(points[i].y / 100) * nh}`
+    }
+    d += ' Z'
+    return d
   }
+
+  const n = points.length
+
+  // Convert percentage coords to pixel coords
+  const px = (p: Point) => ({ x: (p.x / 100) * nw, y: (p.y / 100) * nh })
+
+  const first = px(points[0])
+  let d = `M ${first.x} ${first.y}`
+
+  // For each segment i → i+1, compute cubic Bézier control points using
+  // Catmull-Rom spline (wrapping around for closed shape):
+  //   cp1 = p[i]   + (p[i+1] - p[i-1]) / 6
+  //   cp2 = p[i+1] - (p[i+2] - p[i])   / 6
+  for (let i = 0; i < n; i++) {
+    const p0 = px(points[(i - 1 + n) % n])
+    const p1 = px(points[i])
+    const p2 = px(points[(i + 1) % n])
+    const p3 = px(points[(i + 2) % n])
+
+    const cp1x = p1.x + (p2.x - p0.x) / 6
+    const cp1y = p1.y + (p2.y - p0.y) / 6
+    const cp2x = p2.x - (p3.x - p1.x) / 6
+    const cp2y = p2.y - (p3.y - p1.y) / 6
+
+    d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`
+  }
+
+  // The last C command already draws back to the first point, so just close
   d += ' Z'
   return d
 }
