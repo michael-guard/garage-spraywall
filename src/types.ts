@@ -9,3 +9,16 @@ export interface Hold {
   strokeWidth: number    // percentage of image width (zoom-relative: visualWidth / scale)
   type: 'hand' | 'foot'
 }
+
+// Hold type as stored in the DB problems.holds JSONB column
+export type DbHoldType = 'hand' | 'foot_only' | 'start_hand' | 'start_foot' | 'finish'
+
+// A single hold as persisted in the problems.holds JSONB array
+export interface DbHold {
+  points: Point[]
+  strokeWidth: number
+  type: DbHoldType
+}
+
+// Feet rules options
+export type FeetRules = 'selected_only' | 'follow_hands' | 'open'

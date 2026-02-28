@@ -1,4 +1,4 @@
-import type { Point } from '../types'
+import type { Point, Hold } from '../types'
 
 // --- Segment intersection ---
 
@@ -153,4 +153,36 @@ export function buildActivePathD(points: Point[], nw: number, nh: number): strin
   }
   // No Z — path is still open during drawing
   return d
+}
+
+// --- Hit testing for tap-to-select ---
+
+/** Ray-casting point-in-polygon test (percentage coords) */
+export function pointInHold(testPoint: Point, hold: Hold): boolean {
+  const pts = hold.points
+  const n = pts.length
+  let inside = false
+  for (let i = 0, j = n - 1; i < n; j = i++) {
+    const yi = pts[i].y, yj = pts[j].y
+    if (
+      (yi > testPoint.y) !== (yj > testPoint.y) &&
+      testPoint.x < ((pts[j].x - pts[i].x) * (testPoint.y - yi)) / (yj - yi) + pts[i].x
+    ) {
+      inside = !inside
+    }
+  }
+  return inside
+}
+
+/** Average of all points — for positioning tick marks */
+export function getHoldCentroid(hold: Hold): Point {
+  const n = hold.points.length
+  let sx = 0, sy = 0
+  for (const p of hold.points) { sx += p.x; sy += p.y }
+  return { x: sx / n, y: sy / n }
+}
+
+/** Max y value among hold points — bottom edge of shape */
+export function getHoldBottomY(hold: Hold): number {
+  return Math.max(...hold.points.map((p) => p.y))
 }

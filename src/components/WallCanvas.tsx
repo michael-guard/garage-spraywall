@@ -1,15 +1,22 @@
 import { useRef, useCallback, useState } from 'react'
 import { useDrawGestures } from '../hooks/useDrawGestures'
+import { useSelectGestures } from '../hooks/useSelectGestures'
 import HoldShape from './HoldShape'
-import { autoClosePath, simplifyPath, buildPathD, buildActivePathD } from '../lib/pathUtils'
+import { autoClosePath, simplifyPath, buildPathD, buildActivePathD, pointInHold } from '../lib/pathUtils'
 import type { Hold, Point } from '../types'
 
 interface WallCanvasProps {
   imageUrl: string
   holds: Hold[]
-  onAddHold: (hold: Hold) => void
-  holdType: 'hand' | 'foot'
   darkOverlay?: boolean
+  // Draw mode (step 1)
+  onAddHold?: (hold: Hold) => void
+  holdType?: 'hand' | 'foot'
+  // Select mode (steps 2-3)
+  onHoldTap?: (holdId: string) => void
+  tappableHoldIds?: Set<string>
+  startHoldIds?: Set<string>
+  finishHoldIds?: Set<string>
 }
 
 const MIN_POINTS = 5
@@ -25,21 +32,27 @@ function nextHoldId(): string {
 export default function WallCanvas({
   imageUrl,
   holds,
-  onAddHold,
-  holdType,
   darkOverlay,
+  onAddHold,
+  holdType = 'hand',
+  onHoldTap,
+  tappableHoldIds,
+  startHoldIds,
+  finishHoldIds,
 }: WallCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const imageRef = useRef<HTMLImageElement>(null)
   const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(null)
 
-  // Active stroke state (in-progress drawing)
+  const isDrawMode = !!onAddHold
+  const isSelectMode = !!onHoldTap
+
+  // Active stroke state (in-progress drawing) — only used in draw mode
   const activeStrokePoints = useRef<Point[]>([])
   const activeStrokeType = useRef<'hand' | 'foot'>('hand')
   const activeStrokeWidth = useRef(0)
-  // strokeRevision triggers re-renders when active stroke points change (stored in ref)
   const [strokeRevision, setStrokeRevision] = useState(0)
-  void strokeRevision // read to satisfy TS — value is used implicitly via re-render
+  void strokeRevision
 
   // Ref to avoid stale closure in draw callbacks
   const holdTypeRef = useRef(holdType)
@@ -74,6 +87,8 @@ export default function WallCanvas({
   // Store transform ref for coordinate conversion
   const transformRef = useRef({ scale: 1, translateX: 0, translateY: 0 })
 
+  // --- Draw mode callbacks ---
+
   const handleDrawStart = useCallback(
     (screenX: number, screenY: number) => {
       const coords = screenToImageCoords(screenX, screenY, transformRef.current)
@@ -95,7 +110,6 @@ export default function WallCanvas({
       const points = activeStrokePoints.current
       if (points.length === 0) return
 
-      // Minimum distance filter
       const last = points[points.length - 1]
       const dist = Math.sqrt((coords.x - last.x) ** 2 + (coords.y - last.y) ** 2)
       if (dist < MIN_POINT_DISTANCE) return
@@ -109,15 +123,12 @@ export default function WallCanvas({
   const handleDrawEnd = useCallback(() => {
     const rawPoints = activeStrokePoints.current
     if (rawPoints.length < MIN_POINTS) {
-      // Too small — discard
       activeStrokePoints.current = []
       setStrokeRevision((r) => r + 1)
       return
     }
 
-    // Auto-close and trim nubs
     const closed = autoClosePath(rawPoints)
-    // Simplify
     const simplified = simplifyPath(closed)
 
     if (simplified.length < 3) {
@@ -133,9 +144,7 @@ export default function WallCanvas({
       type: activeStrokeType.current,
     }
 
-    onAddHold(newHold)
-
-    // Clear active stroke
+    onAddHold?.(newHold)
     activeStrokePoints.current = []
     setStrokeRevision((r) => r + 1)
   }, [onAddHold])
@@ -145,36 +154,71 @@ export default function WallCanvas({
     setStrokeRevision((r) => r + 1)
   }, [])
 
-  const { transform, handlers } = useDrawGestures({
-    onDrawStart: handleDrawStart,
-    onDrawMove: handleDrawMove,
-    onDrawEnd: handleDrawEnd,
-    onDrawCancel: handleDrawCancel,
+  // --- Select mode callback ---
+
+  const handleTap = useCallback(
+    (screenX: number, screenY: number) => {
+      if (!onHoldTap) return
+      const coords = screenToImageCoords(screenX, screenY, transformRef.current)
+      if (!coords) return
+
+      // Hit test against tappable holds (iterate in reverse so topmost wins)
+      for (let i = holds.length - 1; i >= 0; i--) {
+        const hold = holds[i]
+        if (tappableHoldIds && !tappableHoldIds.has(hold.id)) continue
+        if (pointInHold(coords, hold)) {
+          onHoldTap(hold.id)
+          return
+        }
+      }
+    },
+    [onHoldTap, holds, tappableHoldIds, screenToImageCoords]
+  )
+
+  // --- Gesture hooks (both always called for React rules, only one active) ---
+
+  const drawGestures = useDrawGestures({
+    onDrawStart: isDrawMode ? handleDrawStart : () => {},
+    onDrawMove: isDrawMode ? handleDrawMove : () => {},
+    onDrawEnd: isDrawMode ? handleDrawEnd : () => {},
+    onDrawCancel: isDrawMode ? handleDrawCancel : () => {},
     containerRef,
   })
 
+  const selectGestures = useSelectGestures({
+    onTap: isSelectMode ? handleTap : () => {},
+    containerRef,
+  })
+
+  // Pick active gesture set
+  const activeTransform = isSelectMode ? selectGestures.transform : drawGestures.transform
+  const activeHandlers = isSelectMode ? selectGestures.handlers : drawGestures.handlers
+
   // Keep transform ref in sync
-  transformRef.current = transform
+  transformRef.current = activeTransform
 
   const nw = naturalSize?.w ?? 100
   const nh = naturalSize?.h ?? 100
 
-  // Active stroke rendering data
+  // Active stroke rendering data (draw mode only)
   const activePoints = activeStrokePoints.current
-  const hasActiveStroke = activePoints.length > 1
+  const hasActiveStroke = isDrawMode && activePoints.length > 1
+
+  // Start hold count for tick mark rendering
+  const startCount = startHoldIds?.size ?? 0
 
   return (
     <div
       ref={containerRef}
       className="relative overflow-hidden w-full"
       style={{ touchAction: 'none' }}
-      onTouchStart={handlers.onTouchStart}
-      onTouchMove={handlers.onTouchMove}
-      onTouchEnd={handlers.onTouchEnd}
+      onTouchStart={activeHandlers.onTouchStart}
+      onTouchMove={activeHandlers.onTouchMove}
+      onTouchEnd={activeHandlers.onTouchEnd}
     >
       <div
         style={{
-          transform: `translate(${transform.translateX}px, ${transform.translateY}px) scale(${transform.scale})`,
+          transform: `translate(${activeTransform.translateX}px, ${activeTransform.translateY}px) scale(${activeTransform.scale})`,
           transformOrigin: '0 0',
         }}
       >
@@ -223,9 +267,12 @@ export default function WallCanvas({
                   hold={hold}
                   naturalWidth={nw}
                   naturalHeight={nh}
+                  isStart={startHoldIds?.has(hold.id)}
+                  isFinish={finishHoldIds?.has(hold.id)}
+                  startCount={startCount}
                 />
               ))}
-              {/* Active stroke (in-progress) */}
+              {/* Active stroke (in-progress, draw mode only) */}
               {hasActiveStroke && (
                 <path
                   d={buildActivePathD(activePoints, nw, nh)}

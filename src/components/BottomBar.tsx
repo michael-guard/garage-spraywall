@@ -27,7 +27,10 @@ export default function BottomBar() {
         <span className="text-lg">⭐</span>
         <span>Saved</span>
       </button>
-      <button className="bg-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl font-bold">
+      <button
+        onClick={() => navigate('/problems/new')}
+        className="bg-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl font-bold"
+      >
         +
       </button>
     </div>
