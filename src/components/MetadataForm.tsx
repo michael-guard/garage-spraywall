@@ -12,8 +12,6 @@ interface MetadataFormProps {
   onNameChange: (name: string) => void
   grade: string
   onGradeChange: (grade: string) => void
-  moveCount: number | null
-  onMoveCountChange: (count: number | null) => void
   tags: string[]
   onTagsChange: (tags: string[]) => void
   startType: 'sit' | 'stand'
@@ -29,8 +27,6 @@ export default function MetadataForm({
   onNameChange,
   grade,
   onGradeChange,
-  moveCount,
-  onMoveCountChange,
   tags,
   onTagsChange,
   startType,
@@ -82,25 +78,9 @@ export default function MetadataForm({
         </div>
       </div>
 
-      {/* Move count */}
-      <div>
-        <label className="block text-sm text-gray-400 mb-1">Move Count (optional)</label>
-        <input
-          type="number"
-          inputMode="numeric"
-          value={moveCount ?? ''}
-          onChange={(e) => {
-            const val = e.target.value
-            onMoveCountChange(val === '' ? null : parseInt(val, 10))
-          }}
-          placeholder="—"
-          className="w-20 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-        />
-      </div>
-
       {/* Tags */}
       <div>
-        <label className="block text-sm text-gray-400 mb-2">Style Tags</label>
+        <label className="block text-sm text-gray-400 mb-2">Style Tags (optional)</label>
         <div className="flex flex-wrap gap-2">
           {TAGS.map((tag) => (
             <button
@@ -176,7 +156,7 @@ export default function MetadataForm({
               <button
                 key={star}
                 onClick={() => onRatingChange(rating === star ? null : star)}
-                className="text-2xl"
+                className="text-2xl w-10 h-10 flex items-center justify-center"
               >
                 {rating !== null && star <= rating ? '⭐' : '☆'}
               </button>

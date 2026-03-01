@@ -31,7 +31,6 @@ export default function CreateProblemPage() {
   // Step 4: metadata
   const [name, setName] = useState('')
   const [grade, setGrade] = useState('')
-  const [moveCount, setMoveCount] = useState<number | null>(null)
   const [tags, setTags] = useState<string[]>([])
   const [startType, setStartType] = useState<'sit' | 'stand'>('sit')
   const [status, setStatus] = useState<'project' | 'sent'>('project')
@@ -127,7 +126,6 @@ export default function CreateProblemPage() {
         wallPhotoId: photo.id,
         name: name.trim(),
         grade,
-        moveCount,
         holds,
         startHoldIds,
         finishHoldIds,
@@ -280,8 +278,6 @@ export default function CreateProblemPage() {
           onNameChange={setName}
           grade={grade}
           onGradeChange={setGrade}
-          moveCount={moveCount}
-          onMoveCountChange={setMoveCount}
           tags={tags}
           onTagsChange={setTags}
           startType={startType}

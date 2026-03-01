@@ -4,6 +4,8 @@
 **Date:** February 25, 2026
 **Status:** Draft
 
+> **For AI agents:** Read `PROJECT_STATUS.md` first to see what's been built and what to work on next.
+
 ---
 
 ## 1. Overview

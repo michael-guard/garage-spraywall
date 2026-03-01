@@ -5,7 +5,6 @@ export interface CreateProblemInput {
   wallPhotoId: string
   name: string
   grade: string
-  moveCount: number | null
   holds: Hold[]
   startHoldIds: Set<string>
   finishHoldIds: Set<string>
@@ -53,7 +52,7 @@ export async function createProblem(input: CreateProblemInput): Promise<string> 
       wall_photo_id: input.wallPhotoId,
       name: input.name,
       grade: input.grade,
-      move_count: input.moveCount,
+      move_count: null,
       holds: dbHolds,
       feet_rules: input.feetRules,
       start_type: input.startType,

@@ -65,14 +65,13 @@ function renderTickMarks(
   // Tick dimensions in natural pixels
   const tickLen = nw * 0.015 // 1.5% of image width
   const tickStroke = nw * 0.004 // stroke width for ticks
-  const gap = nw * 0.008 // gap below shape
   const spacing = nw * 0.008 // spacing between two ticks
 
   // 1 start hold → 2 ticks per hold, 2 start holds → 1 tick each
   const tickCount = startCount === 1 ? 2 : 1
 
-  const tickY1 = by + gap
-  const tickY2 = by + gap + tickLen
+  const tickY1 = by
+  const tickY2 = by + tickLen
 
   if (tickCount === 2) {
     return (
