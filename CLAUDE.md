@@ -34,8 +34,11 @@
 The app is complete and deployed. All planned phases are done. Now in iteration mode — small UX tweaks and polish as needed.
 
 ### What's built
-- **Home page** — problem list with search, filter/sort (grade range, projects only, saved only), bottom bar
-- **Create Problem wizard** — 4-step flow: draw holds → select starts → select finishes → metadata (name, grade, tags, feet rules, start type, status, rating)
+- **Home page** — problem list with search, filter/sort (grade range, projects only, saved only), fixed bottom bar with search input and icon buttons
+- **Problem list rows** — name (text-lg) and grade (text-lg, mono, same color) on line 1; sends count and green project pill on line 2; star rating below grade on the right. No tags displayed on this page.
+- **Bottom bar** — search input (no magnifying glass icon), SVG icon buttons (wall photos, star/saved toggle, gear/filters, circle-plus/create). Fixed positioned at bottom.
+- **Icons** — Font Awesome solid SVGs throughout: undo/redo in create toolbar, star/gear/image/circle-plus in bottom bar
+- **Create Problem wizard** — 4-step flow: draw holds → select starts → select finishes → metadata (name, grade, tags, feet rules, start type, status, rating). Top nav bar with text-only buttons (Cancel, Back, Next, Publish) — no icons, text-base size.
 - **Problem Detail page** — name, grade, info chips, wall photo with dark overlay + hold outlines (pinch-to-zoom), bookmark toggle, log send, archive
 - **Wall photo management** — upload/activate photos in Supabase Storage
 - **Canvas system** — SVG overlay with freehand polygon drawing, select gestures, pinch-to-zoom, dark overlay masking (45% opacity), color-coded holds (white=hand, blue=foot, black=finish), tick marks for starts
