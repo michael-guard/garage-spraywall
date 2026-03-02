@@ -4,12 +4,14 @@ import { getActiveWallPhoto, type WallPhoto } from '../lib/wallPhotos'
 import WallCanvas from '../components/WallCanvas'
 import DrawToolbar from '../components/DrawToolbar'
 import { useUndoRedo } from '../hooks/useUndoRedo'
+import type { FeetRules } from '../types'
 
 export default function CanvasTestPage() {
   const navigate = useNavigate()
   const [photo, setPhoto] = useState<WallPhoto | null>(null)
   const [loading, setLoading] = useState(true)
   const [holdType, setHoldType] = useState<'hand' | 'foot'>('hand')
+  const [feetRules, setFeetRules] = useState<FeetRules>('selected_only')
 
   const { holds, addHold, undo, redo, canUndo, canRedo, clearAll } = useUndoRedo()
 
@@ -87,6 +89,8 @@ export default function CanvasTestPage() {
         canRedo={canRedo}
         onUndo={undo}
         onRedo={redo}
+        feetRules={feetRules}
+        onFeetRulesChange={setFeetRules}
       />
     </div>
   )
