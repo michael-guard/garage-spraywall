@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { Hold, DbHold, DbHoldType, FeetRules, ProblemListItem } from '../types'
+import type { Hold, DbHold, DbHoldType, FeetRules, ProblemListItem, Problem } from '../types'
 
 export interface CreateProblemInput {
   wallPhotoId: string
@@ -38,6 +38,39 @@ function toDbHolds(
     strokeWidth: hold.strokeWidth,
     type: resolveHoldType(hold, startHoldIds, finishHoldIds),
   }))
+}
+
+// Inverse of toDbHolds: convert DB holds back to UI holds + start/finish Sets
+export function fromDbHolds(dbHolds: DbHold[]): {
+  holds: Hold[]
+  startHoldIds: Set<string>
+  finishHoldIds: Set<string>
+} {
+  const startHoldIds = new Set<string>()
+  const finishHoldIds = new Set<string>()
+
+  const holds: Hold[] = dbHolds.map((dh, i) => {
+    const id = `hold-${i}`
+    let baseType: 'hand' | 'foot' = 'hand'
+
+    switch (dh.type) {
+      case 'foot_only':
+      case 'start_foot':
+        baseType = 'foot'
+        break
+    }
+
+    if (dh.type === 'start_hand' || dh.type === 'start_foot') {
+      startHoldIds.add(id)
+    }
+    if (dh.type === 'finish') {
+      finishHoldIds.add(id)
+    }
+
+    return { id, points: dh.points, strokeWidth: dh.strokeWidth, type: baseType }
+  })
+
+  return { holds, startHoldIds, finishHoldIds }
 }
 
 export async function createProblem(input: CreateProblemInput): Promise<string> {
@@ -165,4 +198,94 @@ export async function fetchProblems(opts: FetchProblemsOptions = {}): Promise<Pr
   }
 
   return items
+}
+
+// --- Single problem ---
+
+export async function fetchProblem(id: string): Promise<Problem> {
+  const { data, error } = await supabase
+    .from('problems')
+    .select('*, wall_photos(image_url), sends(count)')
+    .eq('id', id)
+    .single()
+
+  if (error) throw error
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const row = data as any
+  return {
+    id: row.id,
+    name: row.name,
+    grade: row.grade,
+    status: row.status,
+    rating: row.rating,
+    is_saved: row.is_saved,
+    tags: row.tags ?? [],
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    send_count: row.sends?.[0]?.count ?? 0,
+    wall_photo_id: row.wall_photo_id,
+    wall_photo_url: row.wall_photos?.image_url ?? '',
+    holds: row.holds ?? [],
+    feet_rules: row.feet_rules,
+    start_type: row.start_type,
+  }
+}
+
+// --- Mutations ---
+
+export async function logSend(
+  problemId: string,
+  updates?: { grade?: string; rating?: number | null }
+): Promise<void> {
+  // Insert send record
+  const { error: sendError } = await supabase
+    .from('sends')
+    .insert({ problem_id: problemId })
+
+  if (sendError) throw sendError
+
+  // Build update payload: auto-transition project → active + optional grade/rating
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updatePayload: any = {}
+
+  if (updates?.grade) updatePayload.grade = updates.grade
+  if (updates?.rating !== undefined) updatePayload.rating = updates.rating
+
+  // Check if this is the first send (auto-transition)
+  const { count } = await supabase
+    .from('sends')
+    .select('*', { count: 'exact', head: true })
+    .eq('problem_id', problemId)
+
+  if (count === 1) {
+    updatePayload.status = 'active'
+  }
+
+  if (Object.keys(updatePayload).length > 0) {
+    const { error: updateError } = await supabase
+      .from('problems')
+      .update(updatePayload)
+      .eq('id', problemId)
+
+    if (updateError) throw updateError
+  }
+}
+
+export async function toggleSaved(problemId: string, isSaved: boolean): Promise<void> {
+  const { error } = await supabase
+    .from('problems')
+    .update({ is_saved: isSaved })
+    .eq('id', problemId)
+
+  if (error) throw error
+}
+
+export async function archiveProblem(problemId: string): Promise<void> {
+  const { error } = await supabase
+    .from('problems')
+    .update({ status: 'archived' })
+    .eq('id', problemId)
+
+  if (error) throw error
 }

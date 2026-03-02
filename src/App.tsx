@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage'
 import WallPage from './pages/WallPage'
 import CanvasTestPage from './pages/CanvasTestPage'
 import CreateProblemPage from './pages/CreateProblemPage'
+import ProblemDetailPage from './pages/ProblemDetailPage'
 
 function AppContent() {
   return (
@@ -14,7 +15,7 @@ function AppContent() {
         <Route path="/wall" element={<WallPage />} />
         <Route path="/canvas-test" element={<CanvasTestPage />} />
         <Route path="/problems/new" element={<CreateProblemPage />} />
-        <Route path="/problems/:id" element={<div className="p-6 text-gray-400">Problem detail coming soon</div>} />
+        <Route path="/problems/:id" element={<ProblemDetailPage />} />
       </Routes>
     </div>
   )

@@ -38,3 +38,13 @@ export interface ProblemListItem {
   created_at: string
   send_count: number
 }
+
+// Full problem with holds (for detail view)
+export interface Problem extends ProblemListItem {
+  wall_photo_id: string
+  wall_photo_url: string
+  holds: DbHold[]
+  feet_rules: FeetRules
+  start_type: 'sit' | 'stand'
+  updated_at: string
+}
