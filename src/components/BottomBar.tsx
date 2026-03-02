@@ -18,7 +18,7 @@ export default function BottomBar({
   const navigate = useNavigate()
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 px-3 pt-2 pb-3 z-30">
+    <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 px-3 pt-2 z-30" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
       {/* Search input */}
       <div className="relative mb-2">
         <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-sm">🔍</span>
