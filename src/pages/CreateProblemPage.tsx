@@ -172,7 +172,7 @@ export default function CreateProblemPage() {
   const stepLabels = ['Select Holds', 'Select Starts', 'Select Finishes', 'Details']
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="h-dvh flex flex-col overflow-hidden bg-gray-950 text-white">
       {/* Wizard nav bar */}
       <div className="flex items-center justify-between p-3 bg-gray-900">
         {/* Left: X or Back */}
@@ -214,7 +214,7 @@ export default function CreateProblemPage() {
 
       {/* Step content */}
       {step === 1 && (
-        <>
+        <div className="flex-1 min-h-0 overflow-hidden">
           <WallCanvas
             imageUrl={photo.image_url}
             holds={holds}
@@ -231,11 +231,11 @@ export default function CreateProblemPage() {
             onUndo={undo}
             onRedo={redo}
           />
-        </>
+        </div>
       )}
 
       {step === 2 && (
-        <>
+        <div className="flex-1 min-h-0 overflow-hidden">
           <WallCanvas
             imageUrl={photo.image_url}
             holds={holds}
@@ -250,11 +250,11 @@ export default function CreateProblemPage() {
               Tap hand holds to select starts (max 2)
             </span>
           </div>
-        </>
+        </div>
       )}
 
       {step === 3 && (
-        <>
+        <div className="flex-1 min-h-0 overflow-hidden">
           <WallCanvas
             imageUrl={photo.image_url}
             holds={holds}
@@ -269,7 +269,7 @@ export default function CreateProblemPage() {
               Tap hand holds to select finishes (max 2)
             </span>
           </div>
-        </>
+        </div>
       )}
 
       {step === 4 && (
