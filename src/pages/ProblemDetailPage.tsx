@@ -103,13 +103,13 @@ export default function ProblemDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen bg-gray-950 text-white flex flex-col">
       {/* Top bar */}
       <div className="flex items-center justify-between p-3 bg-gray-900">
-        <button onClick={() => navigate('/')} className="text-gray-400 text-sm">
+        <button onClick={() => navigate('/')} className="text-gray-400 text-sm min-w-[60px]">
           ← Back
         </button>
-        <span className="text-sm text-white font-medium truncate mx-4">{problem.name}</span>
+        <div className="min-w-[60px]" />
         <div className="relative">
           <button onClick={() => setMenuOpen(!menuOpen)} className="text-gray-400 text-sm px-2">
             ⋮
@@ -133,68 +133,68 @@ export default function ProblemDetailPage() {
         </div>
       </div>
 
-      {/* Wall photo with holds */}
-      <WallCanvas
-        imageUrl={problem.wall_photo_url}
-        holds={holdData.holds}
-        startHoldIds={holdData.startHoldIds}
-        finishHoldIds={holdData.finishHoldIds}
-      />
+      {/* Problem name */}
+      <h1 className="text-lg font-bold text-center px-4 pt-2">{problem.name}</h1>
 
-      {/* Metadata */}
-      <div className="p-4 space-y-4">
-        {/* Grade + Status + Rating row */}
-        <div className="flex items-center gap-3">
-          <span className="text-2xl font-bold">{problem.grade}</span>
-          {problem.status === 'project' && (
-            <span className="bg-yellow-600 text-white text-xs px-2 py-0.5 rounded-full font-medium uppercase">
-              Project
-            </span>
-          )}
-          {problem.rating !== null && (
-            <span className="text-yellow-500">{'★'.repeat(problem.rating)}</span>
-          )}
-          {problem.send_count > 0 && (
-            <span className="text-gray-500 text-sm">{problem.send_count} send{problem.send_count !== 1 ? 's' : ''}</span>
-          )}
-        </div>
-
-        {/* Details */}
-        <div className="flex flex-wrap gap-2 text-sm text-gray-400">
-          <span className="bg-gray-800 px-2.5 py-1 rounded">{FEET_RULES_LABELS[problem.feet_rules] ?? problem.feet_rules}</span>
-          <span className="bg-gray-800 px-2.5 py-1 rounded capitalize">{problem.start_type} start</span>
-        </div>
-
-        {/* Tags */}
-        {problem.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {problem.tags.map((tag) => (
-              <span key={tag} className="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded">
-                {tag}
-              </span>
-            ))}
-          </div>
+      {/* Grade + stars + send count */}
+      <div className="flex items-center justify-center gap-3 py-1">
+        <span className="text-xl font-bold">{problem.grade}</span>
+        {problem.status === 'project' && (
+          <span className="bg-yellow-600 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium uppercase">
+            Project
+          </span>
         )}
+        {problem.rating !== null && (
+          <span className="text-yellow-500 text-sm">{'★'.repeat(problem.rating)}</span>
+        )}
+        {problem.send_count > 0 && (
+          <span className="text-gray-500 text-sm">{problem.send_count}x</span>
+        )}
+      </div>
 
-        {/* Action buttons */}
-        <div className="flex gap-3 pt-2">
-          <button
-            onClick={() => setSendModalOpen(true)}
-            className="flex-1 bg-green-600 text-white py-3 rounded-lg font-medium text-center"
-          >
-            ✓ Log Send
-          </button>
-          <button
-            onClick={handleToggleSaved}
-            className={`px-4 py-3 rounded-lg font-medium border ${
-              problem.is_saved
-                ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400'
-                : 'bg-gray-800 border-gray-700 text-gray-400'
-            }`}
-          >
-            {problem.is_saved ? '★' : '☆'}
-          </button>
-        </div>
+      {/* Info chips: feet rules → start type → tags */}
+      <div className="flex flex-wrap justify-center gap-1.5 px-4 pb-2">
+        <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">
+          {FEET_RULES_LABELS[problem.feet_rules] ?? problem.feet_rules}
+        </span>
+        <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded capitalize">
+          {problem.start_type} start
+        </span>
+        {problem.tags.map((tag) => (
+          <span key={tag} className="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded">
+            {tag}
+          </span>
+        ))}
+      </div>
+
+      {/* Wall photo with holds — centered */}
+      <div className="flex-1 flex items-center justify-center">
+        <WallCanvas
+          imageUrl={problem.wall_photo_url}
+          holds={holdData.holds}
+          startHoldIds={holdData.startHoldIds}
+          finishHoldIds={holdData.finishHoldIds}
+        />
+      </div>
+
+      {/* Action buttons: favorite left, log send right */}
+      <div className="flex gap-3 p-4">
+        <button
+          onClick={handleToggleSaved}
+          className={`px-4 py-3 rounded-lg font-medium border ${
+            problem.is_saved
+              ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400'
+              : 'bg-gray-800 border-gray-700 text-gray-400'
+          }`}
+        >
+          {problem.is_saved ? '★' : '☆'}
+        </button>
+        <button
+          onClick={() => setSendModalOpen(true)}
+          className="flex-1 bg-green-600 text-white py-3 rounded-lg font-medium text-center"
+        >
+          ✓ Log Send
+        </button>
       </div>
 
       {/* Send confirm modal */}
