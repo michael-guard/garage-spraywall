@@ -25,15 +25,15 @@
 - ~monthly upload frequency, Supabase free tier (1GB) is sufficient
 
 ## Development Approach
-- Keep it minimal — no loading skeletons, error boundaries, or accessibility polish until Phase 7
+- Keep it minimal — avoid over-engineering
 - Add routes only when the corresponding pages are built
-- Simple error handling: try/catch with toast on Supabase failures
+- Simple error handling: try/catch with toast on Supabase failures, error state UI with retry
 - No premature optimization
 
 ## Current Status
-All core features are built and deployed. The app is functional end-to-end:
+The app is complete and deployed. All planned phases are done. Now in iteration mode — small UX tweaks and polish as needed.
 
-### What's done
+### What's built
 - **Home page** — problem list with search, filter/sort (grade range, projects only, saved only), bottom bar
 - **Create Problem wizard** — 4-step flow: draw holds → select starts → select finishes → metadata (name, grade, tags, feet rules, start type, status, rating)
 - **Problem Detail page** — name, grade, info chips, wall photo with dark overlay + hold outlines (pinch-to-zoom), bookmark toggle, log send, archive
@@ -41,7 +41,6 @@ All core features are built and deployed. The app is functional end-to-end:
 - **Canvas system** — SVG overlay with freehand polygon drawing, select gestures, pinch-to-zoom, dark overlay masking (45% opacity), color-coded holds (white=hand, blue=foot, black=finish), tick marks for starts
 - **Data layer** — Supabase: problems table (JSONB holds), sends table, wall_photos table, percentage-based coordinates
 - **Viewport fixes** — both detail and create pages locked to viewport height (h-dvh flex layout), no unwanted scrolling
-
-### What's next
-- **Iterate on the problem creation flow** — UX improvements, testing, and polish
-- Phase 7: loading skeletons, error boundaries, accessibility
+- **Create flow toolbar redesign** — consolidated single-row toolbar: feet rules cycling toggle (SELECTED → FOLLOW → OPEN), undo, hand/foot toggle (no dot, color-only), redo. Wall photo vertically centered in canvas area.
+- **Phase 7 polish** — loading skeletons (Skeleton component), ErrorBoundary with retry, fetch error state UI on all pages, useModalA11y hook (Escape + focus trap), semantic landmarks (main/nav), ARIA labels + aria-pressed on all buttons, better alt text, toast ariaProps
+- **Typography** — Noto Sans via Google Fonts
