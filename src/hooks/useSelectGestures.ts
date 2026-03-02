@@ -72,9 +72,8 @@ export function useSelectGestures({ onTap, containerRef }: SelectGestureCallback
 
   const onTouchStart = useCallback(
     (e: React.TouchEvent) => {
-      e.preventDefault()
-
       if (e.touches.length === 2) {
+        e.preventDefault()
         // Start pinch
         isPinching.current = true
         isPanning.current = false
@@ -99,6 +98,10 @@ export function useSelectGestures({ onTap, containerRef }: SelectGestureCallback
         }
       } else if (e.touches.length === 1 && !isPinching.current) {
         // Single finger — could be tap or pan
+        // Only preventDefault when zoomed in (to enable pan); let browser scroll at 1x
+        if (transformRef.current.scale > 1) {
+          e.preventDefault()
+        }
         touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
         touchStartTime.current = Date.now()
         panStartTranslate.current = {
@@ -114,9 +117,8 @@ export function useSelectGestures({ onTap, containerRef }: SelectGestureCallback
 
   const onTouchMove = useCallback(
     (e: React.TouchEvent) => {
-      e.preventDefault()
-
       if (isPinching.current && e.touches.length === 2) {
+        e.preventDefault()
         // Pinch zoom + pan
         const newDistance = getDistance(e.touches[0], e.touches[1])
         const ratio = newDistance / pinchStartDistance.current
@@ -148,6 +150,7 @@ export function useSelectGestures({ onTap, containerRef }: SelectGestureCallback
 
           // Pan (only when zoomed in)
           if (transformRef.current.scale > 1) {
+            e.preventDefault()
             isPanning.current = true
             const newTx = panStartTranslate.current.x + dx
             const newTy = panStartTranslate.current.y + dy
@@ -167,9 +170,8 @@ export function useSelectGestures({ onTap, containerRef }: SelectGestureCallback
 
   const onTouchEnd = useCallback(
     (e: React.TouchEvent) => {
-      e.preventDefault()
-
       if (isPinching.current) {
+        e.preventDefault()
         if (e.touches.length < 2) {
           isPinching.current = false
         }

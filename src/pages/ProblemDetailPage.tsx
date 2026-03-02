@@ -103,7 +103,7 @@ export default function ProblemDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white flex flex-col">
+    <div className="bg-gray-950 text-white pb-20">
       {/* Top bar */}
       <div className="flex items-center justify-between p-3 bg-gray-900">
         <button onClick={() => navigate('/')} className="text-gray-400 text-sm min-w-[60px]">
@@ -167,18 +167,16 @@ export default function ProblemDetailPage() {
         ))}
       </div>
 
-      {/* Wall photo with holds — centered */}
-      <div className="flex-1 flex items-center justify-center">
-        <WallCanvas
-          imageUrl={problem.wall_photo_url}
-          holds={holdData.holds}
-          startHoldIds={holdData.startHoldIds}
-          finishHoldIds={holdData.finishHoldIds}
-        />
-      </div>
+      {/* Wall photo with holds */}
+      <WallCanvas
+        imageUrl={problem.wall_photo_url}
+        holds={holdData.holds}
+        startHoldIds={holdData.startHoldIds}
+        finishHoldIds={holdData.finishHoldIds}
+      />
 
-      {/* Action buttons: favorite left, log send right */}
-      <div className="flex gap-3 p-4">
+      {/* Fixed bottom action bar: favorite left, log send right */}
+      <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 flex gap-3 px-4 pt-2 z-30" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
         <button
           onClick={handleToggleSaved}
           className={`px-4 py-3 rounded-lg font-medium border ${

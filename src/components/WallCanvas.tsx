@@ -190,9 +190,10 @@ export default function WallCanvas({
     containerRef,
   })
 
-  // Pick active gesture set
-  const activeTransform = isSelectMode ? selectGestures.transform : drawGestures.transform
-  const activeHandlers = isSelectMode ? selectGestures.handlers : drawGestures.handlers
+  // Pick active gesture set: use selectGestures for both select and view-only mode
+  const useSelect = isSelectMode || !isDrawMode
+  const activeTransform = useSelect ? selectGestures.transform : drawGestures.transform
+  const activeHandlers = useSelect ? selectGestures.handlers : drawGestures.handlers
 
   // Keep transform ref in sync
   transformRef.current = activeTransform
@@ -211,7 +212,7 @@ export default function WallCanvas({
     <div
       ref={containerRef}
       className="relative overflow-hidden w-full"
-      style={{ touchAction: 'none' }}
+      style={{ touchAction: isDrawMode ? 'none' : 'pan-y' }}
       onTouchStart={activeHandlers.onTouchStart}
       onTouchMove={activeHandlers.onTouchMove}
       onTouchEnd={activeHandlers.onTouchEnd}
