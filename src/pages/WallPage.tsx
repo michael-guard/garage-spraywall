@@ -47,26 +47,20 @@ export default function WallPage() {
     }
   }
 
+  const activePhoto = photos.find((p) => p.is_active)
+
   return (
-    <div className="p-4">
-      <div className="flex items-center justify-between mb-6">
+    <div className="h-dvh flex flex-col overflow-hidden bg-gray-950 text-white">
+      <div className="flex items-center justify-between p-3 bg-gray-900">
         <button
           onClick={() => navigate('/')}
-          className="text-gray-400 text-lg"
+          className="text-gray-400 text-base min-w-[60px]"
         >
-          ← Back
+          Back
         </button>
-        <h1 className="text-xl font-bold">Wall Photos</h1>
-        <div className="w-12" /> {/* spacer */}
+        <h1 className="text-base text-gray-300">Wall Photos</h1>
+        <div className="min-w-[60px]" />
       </div>
-
-      <button
-        onClick={() => fileInputRef.current?.click()}
-        disabled={uploading}
-        className="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-medium mb-6 disabled:opacity-50"
-      >
-        {uploading ? 'Uploading...' : 'Upload New Photo'}
-      </button>
 
       <input
         ref={fileInputRef}
@@ -76,57 +70,58 @@ export default function WallPage() {
         className="hidden"
       />
 
-      {loading && (
-        <div className="space-y-4">
-          {Array.from({ length: 2 }).map((_, i) => (
-            <div key={i} className="bg-gray-900 rounded-lg overflow-hidden">
-              <Skeleton className="w-full h-48" />
-              <div className="p-3">
-                <Skeleton className="h-3 w-24" />
-              </div>
+      <div className="flex-1 min-h-0 overflow-y-auto p-4">
+        {loading && (
+          <div className="bg-gray-900 rounded-lg overflow-hidden">
+            <Skeleton className="w-full h-48" />
+            <div className="p-3">
+              <Skeleton className="h-3 w-24" />
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        )}
 
-      {!loading && error && (
-        <div className="flex flex-col items-center justify-center py-12 px-4">
-          <p className="text-gray-400 mb-4">Failed to load wall photos</p>
-          <button onClick={loadPhotos} className="bg-blue-600 text-white px-4 py-2 rounded-lg">
-            Retry
-          </button>
-        </div>
-      )}
+        {!loading && error && (
+          <div className="flex flex-col items-center justify-center py-12 px-4">
+            <p className="text-gray-400 mb-4">Failed to load wall photos</p>
+            <button onClick={loadPhotos} className="bg-blue-600 text-white px-4 py-2 rounded-lg">
+              Retry
+            </button>
+          </div>
+        )}
 
-      {!loading && !error && photos.length === 0 && (
-        <p className="text-gray-400 text-center py-8">
-          No wall photos uploaded yet
-        </p>
-      )}
+        {!loading && !error && !activePhoto && (
+          <p className="text-gray-400 text-center py-8">
+            No active wall photo
+          </p>
+        )}
 
-      <div className="space-y-4">
-        {photos.map((photo) => (
-          <div
-            key={photo.id}
-            className="bg-gray-900 rounded-lg overflow-hidden"
-          >
+        {!loading && !error && activePhoto && (
+          <div className="bg-gray-900 rounded-lg overflow-hidden">
             <img
-              src={photo.image_url}
-              alt={`Wall photo from ${new Date(photo.uploaded_at).toLocaleDateString()}`}
+              src={activePhoto.image_url}
+              alt={`Wall photo from ${new Date(activePhoto.uploaded_at).toLocaleDateString()}`}
               className="w-full"
             />
             <div className="p-3 flex items-center justify-between">
               <span className="text-gray-400 text-sm">
-                {new Date(photo.uploaded_at).toLocaleDateString()}
+                {new Date(activePhoto.uploaded_at).toLocaleDateString()}
               </span>
-              {photo.is_active && (
-                <span className="bg-green-600 text-white text-xs px-2 py-1 rounded-full font-medium">
-                  Active
-                </span>
-              )}
+              <span className="bg-green-600 text-white text-xs px-2 py-1 rounded-full font-medium">
+                Active
+              </span>
             </div>
           </div>
-        ))}
+        )}
+      </div>
+
+      <div className="bg-gray-900 border-t border-gray-700 px-4 pt-2" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-medium disabled:opacity-50"
+        >
+          {uploading ? 'Uploading...' : 'Upload New Photo'}
+        </button>
       </div>
     </div>
   )
