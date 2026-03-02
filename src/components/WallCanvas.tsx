@@ -212,7 +212,7 @@ export default function WallCanvas({
     <div
       ref={containerRef}
       className="relative overflow-hidden w-full"
-      style={{ touchAction: isDrawMode ? 'none' : 'pan-y' }}
+      style={{ touchAction: 'none' }}
       onTouchStart={activeHandlers.onTouchStart}
       onTouchMove={activeHandlers.onTouchMove}
       onTouchEnd={activeHandlers.onTouchEnd}
