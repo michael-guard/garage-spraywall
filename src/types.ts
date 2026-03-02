@@ -22,3 +22,19 @@ export interface DbHold {
 
 // Feet rules options
 export type FeetRules = 'selected_only' | 'follow_hands' | 'open'
+
+// Problem status in the DB
+export type ProblemStatus = 'project' | 'active' | 'archived'
+
+// Narrow type for the problem list view (no holds JSONB)
+export interface ProblemListItem {
+  id: string
+  name: string
+  grade: string
+  status: ProblemStatus
+  rating: number | null
+  is_saved: boolean
+  tags: string[]
+  created_at: string
+  send_count: number
+}
