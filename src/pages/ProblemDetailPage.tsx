@@ -103,7 +103,7 @@ export default function ProblemDetailPage() {
   }
 
   return (
-    <div className="bg-gray-950 text-white pb-20">
+    <div className="h-dvh flex flex-col overflow-hidden bg-gray-950 text-white">
       {/* Top bar */}
       <div className="flex items-center justify-between p-3 bg-gray-900">
         <button onClick={() => navigate('/')} className="text-gray-400 text-sm min-w-[60px]">
@@ -167,13 +167,15 @@ export default function ProblemDetailPage() {
         ))}
       </div>
 
-      {/* Wall photo with holds */}
-      <WallCanvas
-        imageUrl={problem.wall_photo_url}
-        holds={holdData.holds}
-        startHoldIds={holdData.startHoldIds}
-        finishHoldIds={holdData.finishHoldIds}
-      />
+      {/* Wall photo with holds — fills remaining space */}
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <WallCanvas
+          imageUrl={problem.wall_photo_url}
+          holds={holdData.holds}
+          startHoldIds={holdData.startHoldIds}
+          finishHoldIds={holdData.finishHoldIds}
+        />
+      </div>
 
       {/* Fixed bottom action bar: favorite left, log send right */}
       <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 flex gap-3 px-4 pt-2 z-30" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
