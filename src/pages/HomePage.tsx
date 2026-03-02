@@ -67,11 +67,6 @@ export default function HomePage() {
 
   return (
     <div className="pb-20">
-      {/* Header */}
-      <div className="px-4 pt-4 pb-2">
-        <h1 className="text-lg font-bold text-white">My Problems</h1>
-      </div>
-
       {/* Problem list */}
       {loading ? (
         <p className="text-gray-400 px-4 py-8">Loading...</p>
