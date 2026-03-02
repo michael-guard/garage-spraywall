@@ -174,6 +174,7 @@ export default function ProblemDetailPage() {
           holds={holdData.holds}
           startHoldIds={holdData.startHoldIds}
           finishHoldIds={holdData.finishHoldIds}
+          darkOverlay
         />
       </div>
 

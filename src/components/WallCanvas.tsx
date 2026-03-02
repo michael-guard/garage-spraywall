@@ -256,7 +256,7 @@ export default function WallCanvas({
                     y="0"
                     width={nw}
                     height={nh}
-                    fill="rgba(0, 0, 0, 0.55)"
+                    fill="rgba(0, 0, 0, 0.4)"
                     mask="url(#overlay-mask)"
                   />
                 </>
