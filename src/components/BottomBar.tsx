@@ -18,7 +18,7 @@ export default function BottomBar({
   const navigate = useNavigate()
 
   return (
-    <nav aria-label="Main navigation" className="flex-shrink-0 bg-gray-900 border-t border-gray-700 px-3 pt-2" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+    <nav aria-label="Main navigation" className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 px-3 pt-2 z-30" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
       {/* Search input */}
       <div className="relative mb-2">
         <input
