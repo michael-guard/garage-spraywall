@@ -66,6 +66,7 @@ export default function MetadataForm({
             <button
               key={g}
               onClick={() => onGradeChange(g)}
+              aria-pressed={grade === g}
               className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                 grade === g
                   ? 'bg-blue-600 text-white'
@@ -86,6 +87,7 @@ export default function MetadataForm({
             <button
               key={tag}
               onClick={() => toggleTag(tag)}
+              aria-pressed={tags.includes(tag)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                 tags.includes(tag)
                   ? 'bg-blue-600 text-white'
@@ -104,6 +106,7 @@ export default function MetadataForm({
         <div className="flex bg-gray-800 rounded-full p-1 w-fit">
           <button
             onClick={() => onStartTypeChange('sit')}
+            aria-pressed={startType === 'sit'}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
               startType === 'sit' ? 'bg-blue-600 text-white' : 'text-gray-400'
             }`}
@@ -112,6 +115,7 @@ export default function MetadataForm({
           </button>
           <button
             onClick={() => onStartTypeChange('stand')}
+            aria-pressed={startType === 'stand'}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
               startType === 'stand' ? 'bg-blue-600 text-white' : 'text-gray-400'
             }`}
@@ -130,6 +134,7 @@ export default function MetadataForm({
               onStatusChange('project')
               onRatingChange(null)
             }}
+            aria-pressed={status === 'project'}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
               status === 'project' ? 'bg-blue-600 text-white' : 'text-gray-400'
             }`}
@@ -138,6 +143,7 @@ export default function MetadataForm({
           </button>
           <button
             onClick={() => onStatusChange('sent')}
+            aria-pressed={status === 'sent'}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
               status === 'sent' ? 'bg-blue-600 text-white' : 'text-gray-400'
             }`}
@@ -156,6 +162,8 @@ export default function MetadataForm({
               <button
                 key={star}
                 onClick={() => onRatingChange(rating === star ? null : star)}
+                aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+                aria-pressed={rating !== null && star <= rating}
                 className="text-2xl w-10 h-10 flex items-center justify-center"
               >
                 {rating !== null && star <= rating ? '⭐' : '☆'}

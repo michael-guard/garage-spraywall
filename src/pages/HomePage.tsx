@@ -6,6 +6,7 @@ import type { ProblemListItem } from '../types'
 import ProblemRow from '../components/ProblemRow'
 import BottomBar from '../components/BottomBar'
 import FilterSortPanel from '../components/FilterSortPanel'
+import Skeleton from '../components/Skeleton'
 
 export default function HomePage() {
   const navigate = useNavigate()
@@ -13,6 +14,7 @@ export default function HomePage() {
   // Problem data
   const [problems, setProblems] = useState<ProblemListItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
   // Search + filter state
   const [search, setSearch] = useState('')
@@ -25,6 +27,7 @@ export default function HomePage() {
 
   // Load problems whenever filters change
   const loadProblems = useCallback(async () => {
+    setError(false)
     try {
       const data = await fetchProblems({
         search,
@@ -36,6 +39,7 @@ export default function HomePage() {
       })
       setProblems(data)
     } catch {
+      setError(true)
       toast.error('Failed to load problems')
     } finally {
       setLoading(false)
@@ -69,7 +73,24 @@ export default function HomePage() {
     <div className="pb-20">
       {/* Problem list */}
       {loading ? (
-        <p className="text-gray-400 px-4 py-8">Loading...</p>
+        <div className="divide-y divide-gray-800">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="px-4 py-3 flex items-center gap-3">
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/3" />
+              </div>
+              <Skeleton className="h-4 w-8" />
+            </div>
+          ))}
+        </div>
+      ) : error ? (
+        <div className="flex flex-col items-center justify-center py-12 px-4">
+          <p className="text-gray-400 mb-4">Failed to load problems</p>
+          <button onClick={loadProblems} className="bg-blue-600 text-white px-4 py-2 rounded-lg">
+            Retry
+          </button>
+        </div>
       ) : problems.length === 0 ? (
         <div className="text-center py-12 px-4">
           <p className="text-gray-500 mb-2">No problems found</p>

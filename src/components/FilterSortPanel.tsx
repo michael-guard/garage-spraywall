@@ -1,4 +1,5 @@
 import type { SortOption } from '../lib/problems'
+import { useModalA11y } from '../hooks/useModalA11y'
 
 const GRADES = ['V0', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10']
 
@@ -43,6 +44,8 @@ export default function FilterSortPanel({
   onSortChange,
   onReset,
 }: FilterSortPanelProps) {
+  const panelRef = useModalA11y(open, onClose)
+
   return (
     <>
       {/* Backdrop */}
@@ -52,6 +55,9 @@ export default function FilterSortPanel({
 
       {/* Panel */}
       <div
+        ref={panelRef}
+        role="dialog"
+        aria-label="Filter and sort"
         className={`fixed bottom-0 left-0 right-0 z-50 bg-gray-900 rounded-t-2xl transition-transform duration-300 ${
           open ? 'translate-y-0' : 'translate-y-full'
         }`}
@@ -76,6 +82,7 @@ export default function FilterSortPanel({
                 <button
                   key={g}
                   onClick={() => onMinGradeChange(minGrade === g ? '' : g)}
+                  aria-pressed={minGrade === g}
                   className={`flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                     minGrade === g
                       ? 'bg-blue-600 text-white'
@@ -96,6 +103,7 @@ export default function FilterSortPanel({
                 <button
                   key={g}
                   onClick={() => onMaxGradeChange(maxGrade === g ? '' : g)}
+                  aria-pressed={maxGrade === g}
                   className={`flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                     maxGrade === g
                       ? 'bg-blue-600 text-white'
@@ -112,6 +120,7 @@ export default function FilterSortPanel({
           <div className="flex gap-3">
             <button
               onClick={() => onProjectsOnlyChange(!projectsOnly)}
+              aria-pressed={projectsOnly}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 projectsOnly
                   ? 'bg-blue-600 text-white'
@@ -122,6 +131,7 @@ export default function FilterSortPanel({
             </button>
             <button
               onClick={() => onSavedOnlyChange(!savedOnly)}
+              aria-pressed={savedOnly}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 savedOnly
                   ? 'bg-blue-600 text-white'
@@ -140,6 +150,7 @@ export default function FilterSortPanel({
                 <button
                   key={opt.value}
                   onClick={() => onSortChange(opt.value)}
+                  aria-pressed={sort === opt.value}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                     sort === opt.value
                       ? 'bg-blue-600 text-white'

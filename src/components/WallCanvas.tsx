@@ -228,7 +228,7 @@ export default function WallCanvas({
           <img
             ref={imageRef}
             src={imageUrl}
-            alt="Wall"
+            alt="Spray wall with climbing holds"
             className="w-full block"
             draggable={false}
             onLoad={handleImageLoad}

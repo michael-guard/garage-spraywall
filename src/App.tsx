@@ -5,19 +5,27 @@ import WallPage from './pages/WallPage'
 import CanvasTestPage from './pages/CanvasTestPage'
 import CreateProblemPage from './pages/CreateProblemPage'
 import ProblemDetailPage from './pages/ProblemDetailPage'
+import ErrorBoundary from './components/ErrorBoundary'
 
 function AppContent() {
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      <Toaster position="top-center" />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/wall" element={<WallPage />} />
-        <Route path="/canvas-test" element={<CanvasTestPage />} />
-        <Route path="/problems/new" element={<CreateProblemPage />} />
-        <Route path="/problems/:id" element={<ProblemDetailPage />} />
-      </Routes>
-    </div>
+    <main className="min-h-screen bg-gray-950 text-white">
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          ariaProps: { role: 'status', 'aria-live': 'polite' },
+        }}
+      />
+      <ErrorBoundary>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/wall" element={<WallPage />} />
+          <Route path="/canvas-test" element={<CanvasTestPage />} />
+          <Route path="/problems/new" element={<CreateProblemPage />} />
+          <Route path="/problems/:id" element={<ProblemDetailPage />} />
+        </Routes>
+      </ErrorBoundary>
+    </main>
   )
 }
 

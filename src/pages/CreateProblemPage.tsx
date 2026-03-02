@@ -8,11 +8,13 @@ import WallCanvas from '../components/WallCanvas'
 import DrawToolbar from '../components/DrawToolbar'
 import MetadataForm from '../components/MetadataForm'
 import type { FeetRules } from '../types'
+import Skeleton from '../components/Skeleton'
 
 export default function CreateProblemPage() {
   const navigate = useNavigate()
   const [photo, setPhoto] = useState<WallPhoto | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [step, setStep] = useState(1)
   const [publishing, setPublishing] = useState(false)
 
@@ -36,19 +38,22 @@ export default function CreateProblemPage() {
   const [rating, setRating] = useState<number | null>(null)
 
   // Load active photo
-  useEffect(() => {
-    async function load() {
-      try {
-        const active = await getActiveWallPhoto()
-        setPhoto(active)
-      } catch {
-        // fail silently
-      } finally {
-        setLoading(false)
-      }
+  const loadPhoto = useCallback(async () => {
+    setError(false)
+    try {
+      const active = await getActiveWallPhoto()
+      setPhoto(active)
+    } catch {
+      setError(true)
+      toast.error('Failed to load wall photo')
+    } finally {
+      setLoading(false)
     }
-    load()
   }, [])
+
+  useEffect(() => {
+    loadPhoto()
+  }, [loadPhoto])
 
   // Computed: hand hold IDs for step 2 tapping
   const handHoldIds = useMemo(
@@ -147,8 +152,26 @@ export default function CreateProblemPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
-        <p className="text-gray-400">Loading...</p>
+      <div className="h-dvh flex flex-col overflow-hidden bg-gray-950 text-white">
+        <div className="flex items-center justify-between p-3 bg-gray-900">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-4 w-12" />
+        </div>
+        <div className="flex-1 min-h-0 m-3">
+          <Skeleton className="h-full w-full rounded-lg" />
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center p-6">
+        <p className="text-gray-400 mb-4">Failed to load wall photo</p>
+        <button onClick={loadPhoto} className="bg-blue-600 text-white px-4 py-2 rounded-lg">
+          Retry
+        </button>
       </div>
     )
   }

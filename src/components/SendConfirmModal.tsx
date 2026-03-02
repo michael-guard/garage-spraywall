@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useModalA11y } from '../hooks/useModalA11y'
 
 const GRADES = ['V0', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10']
 
@@ -21,6 +22,7 @@ export default function SendConfirmModal({
 }: SendConfirmModalProps) {
   const [grade, setGrade] = useState(initialGrade)
   const [rating, setRating] = useState(initialRating)
+  const panelRef = useModalA11y(open, onClose)
 
   const handleConfirm = () => {
     onConfirm(grade, rating)
@@ -35,6 +37,9 @@ export default function SendConfirmModal({
 
       {/* Panel */}
       <div
+        ref={panelRef}
+        role="dialog"
+        aria-label="Log send"
         className={`fixed bottom-0 left-0 right-0 z-50 bg-gray-900 rounded-t-2xl transition-transform duration-300 ${
           open ? 'translate-y-0' : 'translate-y-full'
         }`}
@@ -53,6 +58,7 @@ export default function SendConfirmModal({
                 <button
                   key={g}
                   onClick={() => setGrade(g)}
+                  aria-pressed={grade === g}
                   className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                     grade === g
                       ? 'bg-blue-600 text-white'
@@ -73,6 +79,8 @@ export default function SendConfirmModal({
                 <button
                   key={star}
                   onClick={() => setRating(rating === star ? null : star)}
+                  aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+                  aria-pressed={rating !== null && star <= rating}
                   className="text-2xl w-10 h-10 flex items-center justify-center"
                 >
                   {rating !== null && star <= rating ? '⭐' : '☆'}

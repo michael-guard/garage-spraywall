@@ -48,6 +48,7 @@ export default function DrawToolbar({
           border: '2px solid rgba(255,255,255,0.3)',
         }}
         onClick={cycleFeetRules}
+        aria-label={`Feet rules: ${FEET_RULES_LABELS[feetRules]}`}
       >
         <span className="text-sm font-bold text-white">
           {FEET_RULES_LABELS[feetRules]}
@@ -61,6 +62,7 @@ export default function DrawToolbar({
         }`}
         onClick={onUndo}
         disabled={!canUndo}
+        aria-label="Undo"
       >
         <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M3 10h10a5 5 0 0 1 0 10H9" strokeLinecap="round" strokeLinejoin="round" />
@@ -76,6 +78,7 @@ export default function DrawToolbar({
           border: `2px solid ${holdType === 'hand' ? 'white' : 'dodgerblue'}`,
         }}
         onClick={() => onHoldTypeChange(holdType === 'hand' ? 'foot' : 'hand')}
+        aria-label={holdType === 'hand' ? 'Switch to foot mode' : 'Switch to hand mode'}
       >
         <span className="text-sm font-bold" style={{ color: holdType === 'hand' ? 'white' : 'dodgerblue' }}>
           {holdType === 'hand' ? 'HAND' : 'FOOT'}
@@ -89,6 +92,7 @@ export default function DrawToolbar({
         }`}
         onClick={onRedo}
         disabled={!canRedo}
+        aria-label="Redo"
       >
         <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M21 10H11a5 5 0 0 0 0 10h4" strokeLinecap="round" strokeLinejoin="round" />
