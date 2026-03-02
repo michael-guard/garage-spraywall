@@ -23,6 +23,7 @@ export default function ProblemDetailPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [sendModalOpen, setSendModalOpen] = useState(false)
   const [sendSubmitting, setSendSubmitting] = useState(false)
+  const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false)
 
   const loadProblem = useCallback(async () => {
     if (!id) return
@@ -145,12 +146,12 @@ export default function ProblemDetailPage() {
     <div className="h-dvh flex flex-col overflow-hidden bg-gray-950 text-white">
       {/* Top bar */}
       <div className="flex items-center justify-between p-3 bg-gray-900">
-        <button onClick={() => navigate('/')} className="text-gray-400 text-sm min-w-[60px]" aria-label="Back to problem list">
-          ← Back
+        <button onClick={() => navigate('/')} className="text-gray-400 text-base min-w-[60px]" aria-label="Back to problem list">
+          Back
         </button>
         <div className="min-w-[60px]" />
         <div className="relative">
-          <button onClick={() => setMenuOpen(!menuOpen)} className="text-gray-400 text-sm px-2" aria-label="Problem menu">
+          <button onClick={() => setMenuOpen(!menuOpen)} className="text-gray-400 text-base px-2" aria-label="Problem menu">
             ⋮
           </button>
           {menuOpen && (
@@ -160,9 +161,9 @@ export default function ProblemDetailPage() {
                 <button
                   onClick={() => {
                     setMenuOpen(false)
-                    handleArchive()
+                    setArchiveConfirmOpen(true)
                   }}
-                  className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700"
+                  className="w-full text-left px-4 py-2 text-base text-red-400 hover:bg-gray-700"
                 >
                   Archive
                 </button>
@@ -206,8 +207,8 @@ export default function ProblemDetailPage() {
         ))}
       </div>
 
-      {/* Wall photo with holds — fills remaining space */}
-      <div className="flex-1 min-h-0 overflow-hidden">
+      {/* Wall photo with holds — fills remaining space, centered vertically */}
+      <div className="flex-1 min-h-0 overflow-hidden flex items-center">
         <WallCanvas
           imageUrl={problem.wall_photo_url}
           holds={holdData.holds}
@@ -235,9 +236,38 @@ export default function ProblemDetailPage() {
           onClick={() => setSendModalOpen(true)}
           className="flex-1 bg-green-600 text-white py-3 rounded-lg font-medium text-center"
         >
-          ✓ Log Send
+          Log Send
         </button>
       </div>
+
+      {/* Archive confirm modal */}
+      {archiveConfirmOpen && (
+        <>
+          <div className="fixed inset-0 bg-black/60 z-50" onClick={() => setArchiveConfirmOpen(false)} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+            <div className="bg-gray-800 rounded-xl p-6 w-full max-w-xs">
+              <p className="text-center text-white mb-6">Are you sure you want to archive?</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setArchiveConfirmOpen(false)}
+                  className="flex-1 py-2 rounded-lg bg-gray-700 text-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setArchiveConfirmOpen(false)
+                    handleArchive()
+                  }}
+                  className="flex-1 py-2 rounded-lg bg-red-600 text-white"
+                >
+                  Yes
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Send confirm modal */}
       <SendConfirmModal
