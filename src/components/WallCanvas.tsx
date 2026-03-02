@@ -218,6 +218,7 @@ export default function WallCanvas({
       onTouchEnd={activeHandlers.onTouchEnd}
     >
       <div
+        className="flex flex-col justify-center min-h-full"
         style={{
           transform: `translate(${activeTransform.translateX}px, ${activeTransform.translateY}px) scale(${activeTransform.scale})`,
           transformOrigin: '0 0',

@@ -6,7 +6,6 @@ import { createProblem } from '../lib/problems'
 import { useUndoRedo } from '../hooks/useUndoRedo'
 import WallCanvas from '../components/WallCanvas'
 import DrawToolbar from '../components/DrawToolbar'
-import FeetRulesToggle from '../components/FeetRulesToggle'
 import MetadataForm from '../components/MetadataForm'
 import type { FeetRules } from '../types'
 
@@ -222,7 +221,6 @@ export default function CreateProblemPage() {
             holdType={holdType}
             darkOverlay
           />
-          <FeetRulesToggle value={feetRules} onChange={setFeetRules} />
           <DrawToolbar
             holdType={holdType}
             onHoldTypeChange={setHoldType}
@@ -230,6 +228,8 @@ export default function CreateProblemPage() {
             canRedo={canRedo}
             onUndo={undo}
             onRedo={redo}
+            feetRules={feetRules}
+            onFeetRulesChange={setFeetRules}
           />
         </div>
       )}
