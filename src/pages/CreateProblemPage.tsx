@@ -197,16 +197,16 @@ export default function CreateProblemPage() {
     <div className="h-dvh flex flex-col overflow-hidden bg-gray-950 text-white">
       {/* Wizard nav bar */}
       <div className="flex items-center justify-between p-3 bg-gray-900">
-        {/* Left: X or Back */}
+        {/* Left: Cancel or Back */}
         <button
           onClick={() => (step === 1 ? navigate('/') : setStep((s) => s - 1))}
-          className="text-gray-400 text-sm min-w-[60px]"
+          className="text-gray-400 text-base min-w-[60px]"
         >
-          {step === 1 ? '✕ Cancel' : '← Back'}
+          {step === 1 ? 'Cancel' : 'Back'}
         </button>
 
         {/* Center: step indicator */}
-        <span className="text-sm text-gray-300">
+        <span className="text-base text-gray-300">
           {stepLabels[step - 1]} ({step}/4)
         </span>
 
@@ -215,17 +215,17 @@ export default function CreateProblemPage() {
           <button
             onClick={handleNext}
             disabled={!canAdvance}
-            className={`text-sm font-medium min-w-[60px] text-right ${
+            className={`text-base font-medium min-w-[60px] text-right ${
               canAdvance ? 'text-blue-400' : 'text-gray-600'
             }`}
           >
-            Next →
+            Next
           </button>
         ) : (
           <button
             onClick={handlePublish}
             disabled={!canAdvance || publishing}
-            className={`text-sm font-medium min-w-[60px] text-right ${
+            className={`text-base font-medium min-w-[60px] text-right ${
               canAdvance && !publishing ? 'text-blue-400' : 'text-gray-600'
             }`}
           >
