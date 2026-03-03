@@ -208,7 +208,7 @@ export default function ProblemDetailPage() {
       </div>
 
       {/* Wall photo with holds — fills remaining space, centered vertically */}
-      <div className="flex-1 min-h-0 overflow-hidden flex items-center">
+      <div className="flex-1 min-h-0 overflow-hidden flex items-center justify-center">
         <WallCanvas
           imageUrl={problem.wall_photo_url}
           holds={holdData.holds}
