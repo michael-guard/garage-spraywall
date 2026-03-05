@@ -4,7 +4,7 @@ A web app for tracking climbing problems on a home spray wall. Upload a photo of
 
 Built by [Michael Guard](https://github.com/michael-guard).
 
-**Live app:** [garage-spraywall.vercel.app](https://garage-spraywall.vercel.app)
+**Live app:** [spraywall.org](https://spraywall.org)
 
 <!-- TODO: Add screenshots here -->
 
