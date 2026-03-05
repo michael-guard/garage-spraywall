@@ -124,8 +124,20 @@ export default function HomePage() {
         resultCount={problems.length}
         minGrade={minGrade}
         maxGrade={maxGrade}
-        onMinGradeChange={setMinGrade}
-        onMaxGradeChange={setMaxGrade}
+        onMinGradeChange={(g) => {
+          setMinGrade(g)
+          if (g && maxGrade) {
+            const gi = parseInt(g.slice(1)), maxi = parseInt(maxGrade.slice(1))
+            if (gi > maxi) setMaxGrade(g)
+          }
+        }}
+        onMaxGradeChange={(g) => {
+          setMaxGrade(g)
+          if (g && minGrade) {
+            const gi = parseInt(g.slice(1)), mini = parseInt(minGrade.slice(1))
+            if (gi < mini) setMinGrade(g)
+          }
+        }}
         projectsOnly={projectsOnly}
         onProjectsOnlyChange={setProjectsOnly}
         savedOnly={savedOnly}
