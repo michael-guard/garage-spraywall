@@ -10,7 +10,7 @@ Built by [Michael Guard](https://github.com/michael-guard).
 
 ## What Is a Spray Wall?
 
-A spray wall is a home climbing training wall covered in holds with no predefined routes. Climbers create their own problems (routes) by choosing which holds to use. This app lets you digitally track those problems so you don't have to remember them all.
+A spray wall is a home climbing training wall covered in holds with no predefined problems (or routes). Climbers create their own problems by choosing which holds to use. This app lets you digitally track those problems so you don't have to remember them, do manual tracking, or pay for a dedicated app.
 
 ## Features
 
@@ -31,7 +31,7 @@ A spray wall is a home climbing training wall covered in holds with no predefine
 - **Single user** — There are no user accounts. One instance of the app = one person's problems. If multiple people need to track problems on the same wall, each person would need their own deployment.
 - **Online only** — The app requires an internet connection. There is no offline mode.
 - **One active wall photo** — Only one wall photo can be active at a time. If you re-set your wall, upload a new photo and it becomes the active one. Old problems still reference their original photo.
-- **Mobile-first** — Designed for phones in portrait orientation. It works on desktop but the drawing experience is optimized for touch.
+- **Mobile-first** — Designed for Android phones running Chrome in portrait orientation. It works on desktop but the drawing experience is optimized for touch.
 - **Grades are V-scale only** — V0 through V10. No Font scale or other grading systems.
 
 ## Tech Stack
