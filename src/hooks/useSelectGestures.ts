@@ -174,6 +174,19 @@ export function useSelectGestures({ onTap, containerRef }: SelectGestureCallback
         e.preventDefault()
         if (e.touches.length < 2) {
           isPinching.current = false
+          // Reset pan baseline when transitioning from pinch to single finger
+          // to prevent jump caused by stale pre-pinch translate values
+          if (e.touches.length === 1) {
+            touchStartPos.current = {
+              x: e.touches[0].clientX,
+              y: e.touches[0].clientY,
+            }
+            panStartTranslate.current = {
+              x: transformRef.current.translateX,
+              y: transformRef.current.translateY,
+            }
+            isTapCandidate.current = false
+          }
         }
         return
       }
