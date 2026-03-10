@@ -281,6 +281,18 @@ export async function toggleSaved(problemId: string, isSaved: boolean): Promise<
   if (error) throw error
 }
 
+export async function updateProblem(
+  problemId: string,
+  updates: { grade: string; tags: string[] }
+): Promise<void> {
+  const { error } = await supabase
+    .from('problems')
+    .update({ grade: updates.grade, tags: updates.tags })
+    .eq('id', problemId)
+
+  if (error) throw error
+}
+
 export async function archiveProblem(problemId: string): Promise<void> {
   const { error } = await supabase
     .from('problems')
