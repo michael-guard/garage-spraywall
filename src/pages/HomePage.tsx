@@ -51,7 +51,9 @@ export default function HomePage() {
   }, [loadProblems])
 
   const handleProblemTap = (id: string) => {
-    navigate(`/problems/${id}`)
+    const problemIds = problems.map((p) => p.id)
+    const currentIndex = problemIds.indexOf(id)
+    navigate(`/problems/${id}`, { state: { problemIds, currentIndex } })
   }
 
   const handleSavedToggle = () => {

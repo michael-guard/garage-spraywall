@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { fetchProblem, fromDbHolds, logSend, toggleSaved, archiveProblem, updateProblem } from '../lib/problems'
 import type { Problem } from '../types'
 import WallCanvas from '../components/WallCanvas'
 import SendConfirmModal from '../components/SendConfirmModal'
 import Skeleton from '../components/Skeleton'
+import useSwipeNavigation from '../hooks/useSwipeNavigation'
 
 const FEET_RULES_LABELS: Record<string, string> = {
   selected_only: 'Selected Feet Only',
@@ -25,6 +26,12 @@ const TAGS = [
 export default function ProblemDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // Problem list context from HomePage for swipe navigation
+  const { problemIds, currentIndex } = (location.state as { problemIds?: string[]; currentIndex?: number } | null) ?? {}
+  const prevId = problemIds && currentIndex !== undefined && currentIndex > 0 ? problemIds[currentIndex - 1] : null
+  const nextId = problemIds && currentIndex !== undefined && currentIndex < problemIds.length - 1 ? problemIds[currentIndex + 1] : null
 
   const [problem, setProblem] = useState<Problem | null>(null)
   const [loading, setLoading] = useState(true)
@@ -41,6 +48,18 @@ export default function ProblemDetailPage() {
   const [editStatus, setEditStatus] = useState<'project' | 'active'>('project')
   const [editRating, setEditRating] = useState<number | null>(null)
   const [editSaving, setEditSaving] = useState(false)
+
+  const swipe = useSwipeNavigation({
+    onSwipeLeft: () => {
+      if (nextId) navigate(`/problems/${nextId}`, { state: { problemIds, currentIndex: currentIndex! + 1 }, replace: true })
+    },
+    onSwipeRight: () => {
+      if (prevId) navigate(`/problems/${prevId}`, { state: { problemIds, currentIndex: currentIndex! - 1 }, replace: true })
+    },
+    canSwipeLeft: !!nextId,
+    canSwipeRight: !!prevId,
+    disabled: editing || !problemIds,
+  })
 
   const loadProblem = useCallback(async () => {
     if (!id) return
@@ -208,7 +227,13 @@ export default function ProblemDetailPage() {
   }
 
   return (
-    <div className="h-dvh flex flex-col overflow-hidden bg-gray-950 text-white">
+    <div
+      className="h-dvh flex flex-col overflow-hidden bg-gray-950 text-white"
+      onTouchStart={swipe.onTouchStart}
+      onTouchMove={swipe.onTouchMove}
+      onTouchEnd={swipe.onTouchEnd}
+      style={swipe.style}
+    >
       {/* Top bar */}
       <div className="flex items-center justify-between p-3 bg-gray-900">
         {editing ? (
