@@ -283,11 +283,25 @@ export async function toggleSaved(problemId: string, isSaved: boolean): Promise<
 
 export async function updateProblem(
   problemId: string,
-  updates: { grade: string; tags: string[] }
+  updates: {
+    name: string
+    grade: string
+    tags: string[]
+    start_type: 'sit' | 'stand'
+    status: 'project' | 'active'
+    rating: number | null
+  }
 ): Promise<void> {
   const { error } = await supabase
     .from('problems')
-    .update({ grade: updates.grade, tags: updates.tags })
+    .update({
+      name: updates.name,
+      grade: updates.grade,
+      tags: updates.tags,
+      start_type: updates.start_type,
+      status: updates.status,
+      rating: updates.rating,
+    })
     .eq('id', problemId)
 
   if (error) throw error

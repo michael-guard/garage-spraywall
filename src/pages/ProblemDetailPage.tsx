@@ -34,8 +34,12 @@ export default function ProblemDetailPage() {
   const [sendSubmitting, setSendSubmitting] = useState(false)
   const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [editName, setEditName] = useState('')
   const [editGrade, setEditGrade] = useState('')
   const [editTags, setEditTags] = useState<string[]>([])
+  const [editStartType, setEditStartType] = useState<'sit' | 'stand'>('sit')
+  const [editStatus, setEditStatus] = useState<'project' | 'active'>('project')
+  const [editRating, setEditRating] = useState<number | null>(null)
   const [editSaving, setEditSaving] = useState(false)
 
   const loadProblem = useCallback(async () => {
@@ -114,8 +118,12 @@ export default function ProblemDetailPage() {
 
   const enterEditMode = () => {
     if (!problem) return
+    setEditName(problem.name)
     setEditGrade(problem.grade)
     setEditTags([...problem.tags])
+    setEditStartType(problem.start_type)
+    setEditStatus(problem.status === 'project' ? 'project' : 'active')
+    setEditRating(problem.rating)
     setEditing(true)
   }
 
@@ -123,8 +131,23 @@ export default function ProblemDetailPage() {
     if (!problem) return
     setEditSaving(true)
     try {
-      await updateProblem(problem.id, { grade: editGrade, tags: editTags })
-      setProblem({ ...problem, grade: editGrade, tags: editTags })
+      await updateProblem(problem.id, {
+        name: editName,
+        grade: editGrade,
+        tags: editTags,
+        start_type: editStartType,
+        status: editStatus,
+        rating: editRating,
+      })
+      setProblem({
+        ...problem,
+        name: editName,
+        grade: editGrade,
+        tags: editTags,
+        start_type: editStartType,
+        status: editStatus,
+        rating: editRating,
+      })
       toast.success('Problem updated')
       setEditing(false)
     } catch {
@@ -245,8 +268,8 @@ export default function ProblemDetailPage() {
       {editing ? (
         /* Edit mode form */
         <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-6">
-          {/* Problem name (read-only header) */}
-          <h1 className="text-lg font-bold text-center">{problem.name}</h1>
+          {/* Problem name header */}
+          <h1 className="text-lg font-bold text-center">{editName}</h1>
 
           {/* Grade (editable) */}
           <div>
@@ -290,56 +313,70 @@ export default function ProblemDetailPage() {
             </div>
           </div>
 
-          {/* Name (disabled) */}
-          <div className="opacity-50 pointer-events-none">
+          {/* Name */}
+          <div>
             <label className="block text-sm text-gray-400 mb-1">Name</label>
             <input
               type="text"
-              value={problem.name}
-              readOnly
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white"
             />
           </div>
 
-          {/* Start Type (disabled) */}
-          <div className="opacity-50 pointer-events-none">
+          {/* Start Type */}
+          <div>
             <label className="block text-sm text-gray-400 mb-2">Start Type</label>
             <div className="flex bg-gray-800 rounded-full p-1 w-fit">
-              <span className={`px-4 py-1.5 rounded-full text-sm font-medium ${
-                problem.start_type === 'sit' ? 'bg-blue-600 text-white' : 'text-gray-400'
-              }`}>Sit</span>
-              <span className={`px-4 py-1.5 rounded-full text-sm font-medium ${
-                problem.start_type === 'stand' ? 'bg-blue-600 text-white' : 'text-gray-400'
-              }`}>Stand</span>
+              <button
+                onClick={() => setEditStartType('sit')}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium ${
+                  editStartType === 'sit' ? 'bg-blue-600 text-white' : 'text-gray-400'
+                }`}
+              >Sit</button>
+              <button
+                onClick={() => setEditStartType('stand')}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium ${
+                  editStartType === 'stand' ? 'bg-blue-600 text-white' : 'text-gray-400'
+                }`}
+              >Stand</button>
             </div>
           </div>
 
-          {/* Status (disabled) */}
-          <div className="opacity-50 pointer-events-none">
+          {/* Status */}
+          <div>
             <label className="block text-sm text-gray-400 mb-2">Status</label>
             <div className="flex bg-gray-800 rounded-full p-1 w-fit">
-              <span className={`px-4 py-1.5 rounded-full text-sm font-medium ${
-                problem.status === 'project' ? 'bg-blue-600 text-white' : 'text-gray-400'
-              }`}>Project</span>
-              <span className={`px-4 py-1.5 rounded-full text-sm font-medium ${
-                problem.status === 'active' ? 'bg-blue-600 text-white' : 'text-gray-400'
-              }`}>Sent</span>
+              <button
+                onClick={() => setEditStatus('project')}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium ${
+                  editStatus === 'project' ? 'bg-blue-600 text-white' : 'text-gray-400'
+                }`}
+              >Project</button>
+              <button
+                onClick={() => setEditStatus('active')}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium ${
+                  editStatus === 'active' ? 'bg-blue-600 text-white' : 'text-gray-400'
+                }`}
+              >Sent</button>
             </div>
           </div>
 
-          {/* Rating (disabled, only if exists) */}
-          {problem.rating !== null && (
-            <div className="opacity-50 pointer-events-none">
-              <label className="block text-sm text-gray-400 mb-2">Rating</label>
-              <div className="flex gap-2">
-                {[1, 2, 3].map((star) => (
-                  <span key={star} className="text-2xl w-10 h-10 flex items-center justify-center">
-                    {problem.rating !== null && star <= problem.rating ? '⭐' : '☆'}
-                  </span>
-                ))}
-              </div>
+          {/* Rating */}
+          <div>
+            <label className="block text-sm text-gray-400 mb-2">Rating</label>
+            <div className="flex gap-2">
+              {[1, 2, 3].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => setEditRating(editRating === star ? null : star)}
+                  className="text-2xl w-10 h-10 flex items-center justify-center"
+                >
+                  {editRating !== null && star <= editRating ? '⭐' : '☆'}
+                </button>
+              ))}
             </div>
-          )}
+          </div>
 
           {/* Feet Rules (disabled) */}
           <div className="opacity-50 pointer-events-none">
