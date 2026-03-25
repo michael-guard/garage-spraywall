@@ -53,6 +53,7 @@ export default function ProblemDetailPage() {
   }, [id])
 
   useEffect(() => {
+    window.scrollTo(0, 0)
     loadProblem()
   }, [loadProblem])
 
