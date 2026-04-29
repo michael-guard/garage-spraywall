@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { fetchProblems, type SortOption } from '../lib/problems'
 import type { ProblemListItem } from '../types'
@@ -8,22 +8,55 @@ import BottomBar from '../components/BottomBar'
 import FilterSortPanel from '../components/FilterSortPanel'
 import Skeleton from '../components/Skeleton'
 
+const SORT_OPTIONS: readonly SortOption[] = [
+  'best',
+  'newest',
+  'oldest',
+  'most_repeats',
+  'least_repeats',
+]
+
+function isValidSort(v: string | null): v is SortOption {
+  return v !== null && (SORT_OPTIONS as readonly string[]).includes(v)
+}
+
 export default function HomePage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   // Problem data
   const [problems, setProblems] = useState<ProblemListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
-  // Search + filter state
-  const [search, setSearch] = useState('')
-  const [minGrade, setMinGrade] = useState('')
-  const [maxGrade, setMaxGrade] = useState('')
-  const [projectsOnly, setProjectsOnly] = useState(false)
-  const [savedOnly, setSavedOnly] = useState(false)
-  const [sort, setSort] = useState<SortOption>('newest')
+  // Search + filter state derived from URL
+  const search = searchParams.get('q') ?? ''
+  const minGrade = searchParams.get('min') ?? ''
+  const maxGrade = searchParams.get('max') ?? ''
+  const projectsOnly = searchParams.get('proj') === '1'
+  const savedOnly = searchParams.get('saved') === '1'
+  const sortParam = searchParams.get('sort')
+  const sort: SortOption = isValidSort(sortParam) ? sortParam : 'newest'
+
   const [filterOpen, setFilterOpen] = useState(false)
+
+  const updateParams = useCallback(
+    (patch: Record<string, string | boolean | null>) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev)
+          for (const [k, v] of Object.entries(patch)) {
+            const str = v === true ? '1' : v === false ? null : v
+            if (str == null || str === '') next.delete(k)
+            else next.set(k, str)
+          }
+          return next
+        },
+        { replace: true },
+      )
+    },
+    [setSearchParams],
+  )
 
   // Load problems whenever filters change
   const loadProblems = useCallback(async () => {
@@ -57,16 +90,11 @@ export default function HomePage() {
   }
 
   const handleSavedToggle = () => {
-    setSavedOnly((prev) => !prev)
+    updateParams({ saved: !savedOnly })
   }
 
   const handleResetFilters = () => {
-    setSearch('')
-    setMinGrade('')
-    setMaxGrade('')
-    setProjectsOnly(false)
-    setSavedOnly(false)
-    setSort('newest')
+    setSearchParams({}, { replace: true })
   }
 
   const hasActiveFilters = search || minGrade || maxGrade || projectsOnly || savedOnly
@@ -113,7 +141,7 @@ export default function HomePage() {
       {/* Bottom bar */}
       <BottomBar
         searchValue={search}
-        onSearchChange={setSearch}
+        onSearchChange={(v) => updateParams({ q: v })}
         onFilterOpen={() => setFilterOpen(true)}
         isSavedActive={savedOnly}
         onSavedToggle={handleSavedToggle}
@@ -127,25 +155,27 @@ export default function HomePage() {
         minGrade={minGrade}
         maxGrade={maxGrade}
         onMinGradeChange={(g) => {
-          setMinGrade(g)
+          const patch: Record<string, string> = { min: g }
           if (g && maxGrade) {
             const gi = parseInt(g.slice(1)), maxi = parseInt(maxGrade.slice(1))
-            if (gi > maxi) setMaxGrade(g)
+            if (gi > maxi) patch.max = g
           }
+          updateParams(patch)
         }}
         onMaxGradeChange={(g) => {
-          setMaxGrade(g)
+          const patch: Record<string, string> = { max: g }
           if (g && minGrade) {
             const gi = parseInt(g.slice(1)), mini = parseInt(minGrade.slice(1))
-            if (gi < mini) setMinGrade(g)
+            if (gi < mini) patch.min = g
           }
+          updateParams(patch)
         }}
         projectsOnly={projectsOnly}
-        onProjectsOnlyChange={setProjectsOnly}
+        onProjectsOnlyChange={(v) => updateParams({ proj: v })}
         savedOnly={savedOnly}
-        onSavedOnlyChange={setSavedOnly}
+        onSavedOnlyChange={(v) => updateParams({ saved: v })}
         sort={sort}
-        onSortChange={setSort}
+        onSortChange={(v) => updateParams({ sort: v === 'newest' ? null : v })}
         onReset={handleResetFilters}
       />
     </div>
