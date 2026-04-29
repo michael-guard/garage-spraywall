@@ -101,7 +101,7 @@ export default function HomePage() {
   const hasActiveFilters = search || minGrade || maxGrade || projectsOnly || savedOnly
 
   return (
-    <div className="pb-20">
+    <div style={{ paddingBottom: 'calc(max(0.75rem, env(safe-area-inset-bottom)) + 5.5rem)' }}>
       {/* Problem list */}
       {loading ? (
         <div className="divide-y divide-gray-800">
