@@ -113,7 +113,7 @@ export async function createProblem(input: CreateProblemInput): Promise<string> 
 
 // --- Fetching ---
 
-export type SortOption = 'best' | 'newest' | 'oldest' | 'most_repeats' | 'least_repeats'
+export type SortOption = 'easiest' | 'best' | 'newest' | 'oldest' | 'most_repeats' | 'least_repeats'
 
 export interface FetchProblemsOptions {
   search?: string
@@ -152,15 +152,17 @@ export async function fetchProblems(opts: FetchProblemsOptions = {}): Promise<Pr
     query = query.ilike('name', `%${opts.search.trim()}%`)
   }
 
+  const sort: SortOption = opts.sort ?? 'easiest'
+
   // Sort — server-side where possible
-  if (opts.sort === 'oldest') {
+  if (sort === 'oldest') {
     query = query.order('created_at', { ascending: true })
-  } else if (opts.sort === 'best') {
+  } else if (sort === 'best') {
     query = query.order('rating', { ascending: false, nullsFirst: false })
-  } else if (opts.sort !== 'most_repeats' && opts.sort !== 'least_repeats') {
-    // Default: newest
+  } else if (sort === 'newest') {
     query = query.order('created_at', { ascending: false })
   }
+  // easiest, most_repeats, least_repeats: sorted client-side below
 
   const { data, error } = await query
 
@@ -190,10 +192,12 @@ export async function fetchProblems(opts: FetchProblemsOptions = {}): Promise<Pr
     items = items.filter((p) => gradeIndex(p.grade) <= maxIdx)
   }
 
-  // Client-side sort for send-count-based sorts
-  if (opts.sort === 'most_repeats') {
+  // Client-side sort for grade- and send-count-based sorts
+  if (sort === 'easiest') {
+    items.sort((a, b) => gradeIndex(a.grade) - gradeIndex(b.grade))
+  } else if (sort === 'most_repeats') {
     items.sort((a, b) => b.send_count - a.send_count)
-  } else if (opts.sort === 'least_repeats') {
+  } else if (sort === 'least_repeats') {
     items.sort((a, b) => a.send_count - b.send_count)
   }
 

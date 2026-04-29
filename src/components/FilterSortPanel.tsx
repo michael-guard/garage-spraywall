@@ -4,6 +4,7 @@ import { useModalA11y } from '../hooks/useModalA11y'
 const GRADES = ['V0', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10']
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: 'easiest', label: 'Easiest' },
   { value: 'newest', label: 'Newest' },
   { value: 'oldest', label: 'Oldest' },
   { value: 'best', label: 'Best' },

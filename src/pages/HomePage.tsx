@@ -9,6 +9,7 @@ import FilterSortPanel from '../components/FilterSortPanel'
 import Skeleton from '../components/Skeleton'
 
 const SORT_OPTIONS: readonly SortOption[] = [
+  'easiest',
   'best',
   'newest',
   'oldest',
@@ -36,7 +37,7 @@ export default function HomePage() {
   const projectsOnly = searchParams.get('proj') === '1'
   const savedOnly = searchParams.get('saved') === '1'
   const sortParam = searchParams.get('sort')
-  const sort: SortOption = isValidSort(sortParam) ? sortParam : 'newest'
+  const sort: SortOption = isValidSort(sortParam) ? sortParam : 'easiest'
 
   const [filterOpen, setFilterOpen] = useState(false)
 
@@ -175,7 +176,7 @@ export default function HomePage() {
         savedOnly={savedOnly}
         onSavedOnlyChange={(v) => updateParams({ saved: v })}
         sort={sort}
-        onSortChange={(v) => updateParams({ sort: v === 'newest' ? null : v })}
+        onSortChange={(v) => updateParams({ sort: v === 'easiest' ? null : v })}
         onReset={handleResetFilters}
       />
     </div>
