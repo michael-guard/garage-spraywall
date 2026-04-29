@@ -37,6 +37,12 @@ export default function CreateProblemPage() {
   const [status, setStatus] = useState<'project' | 'sent'>('project')
   const [rating, setRating] = useState<number | null>(null)
 
+  // Reset scroll on mount so the top wizard bar isn't hidden when
+  // navigating from a scrolled home page.
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+
   // Load active photo
   const loadPhoto = useCallback(async () => {
     setError(false)
