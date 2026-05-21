@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useModalA11y } from '../hooks/useModalA11y'
 
 const GRADES = ['V0', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10']
@@ -23,6 +23,16 @@ export default function SendConfirmModal({
   const [grade, setGrade] = useState(initialGrade)
   const [rating, setRating] = useState(initialRating)
   const panelRef = useModalA11y(open, onClose)
+
+  // Re-seed from the current boulder each time the modal opens. The modal
+  // stays mounted across swipes, so without this the previous boulder's
+  // grade/rating would leak into the next "Log Send".
+  useEffect(() => {
+    if (open) {
+      setGrade(initialGrade)
+      setRating(initialRating)
+    }
+  }, [open, initialGrade, initialRating])
 
   const handleConfirm = () => {
     onConfirm(grade, rating)
