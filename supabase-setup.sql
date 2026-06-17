@@ -79,3 +79,21 @@ create policy "Allow public update access on wall-photos"
 create policy "Allow public delete access on wall-photos"
   on storage.objects for delete
   using (bucket_id = 'wall-photos');
+
+-- 7. Keepalive table — single row whose timestamp is bumped by a scheduled
+--    GitHub Action every few days. Supabase pauses free-tier projects after
+--    ~7 days with no external API activity; this ping keeps it awake.
+--    Not used by the app. See .github/workflows/keepalive.yml.
+create table keepalive (
+  id int primary key default 1,
+  last_ping timestamptz not null default now()
+);
+
+insert into keepalive (id, last_ping) values (1, now());
+
+alter table keepalive enable row level security;
+
+create policy "Allow all access to keepalive"
+  on keepalive for all
+  using (true)
+  with check (true);
