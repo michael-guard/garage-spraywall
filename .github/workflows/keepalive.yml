@@ -15,10 +15,17 @@ on:
     - cron: '23 7 */3 * *'
   workflow_dispatch: {} # lets you trigger a manual test run from the Actions tab
 
+# Needed so the keepalive-commit step below can push to the repo.
+permissions:
+  contents: write
+
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
       - name: Ping Supabase REST API
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -51,3 +58,27 @@ jobs:
           fi
 
           echo "Keepalive ping succeeded."
+
+      - name: Keep workflow enabled (commit only if repo idle ~45 days)
+        run: |
+          set -euo pipefail
+
+          LAST=$(git log -1 --format=%ct)
+          NOW=$(date -u +%s)
+          AGE_DAYS=$(( (NOW - LAST) / 86400 ))
+          echo "Last commit was ${AGE_DAYS} day(s) ago."
+
+          # GitHub auto-disables scheduled workflows after 60 days with no repo
+          # activity. A push resets that timer, so if the repo has gone quiet we
+          # make a tiny empty commit. The 45-day threshold leaves margin before
+          # the 60-day cutoff. Commits pushed with GITHUB_TOKEN don't trigger new
+          # workflow runs, so this can't cause a loop.
+          if [ "${AGE_DAYS}" -ge 45 ]; then
+            echo "Repo idle ${AGE_DAYS}d — pushing a keepalive commit."
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit --allow-empty -m "chore: keepalive commit to keep scheduled workflow enabled"
+            git push
+          else
+            echo "No keepalive commit needed (under 45 days)."
+          fi
