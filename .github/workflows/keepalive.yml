@@ -1,12 +1,16 @@
 name: Supabase Keepalive
 
-# Supabase pauses free-tier projects after ~7 days with no external API
-# activity. This pings the REST API to bump a timestamp in the `keepalive`
-# table, keeping the project awake whether or not the app gets used.
+# Supabase pauses free-tier projects after ~7 days with no database activity.
+# This opens a direct Postgres connection every few days and bumps a timestamp
+# in the `keepalive` table, keeping the project awake whether or not it's used.
 #
-# Requires two repo secrets (Settings → Secrets and variables → Actions):
-#   SUPABASE_URL       e.g. https://abcdefgh.supabase.co
-#   SUPABASE_ANON_KEY  the public anon key (same one the app ships)
+# NOTE: PostgREST/API pings do NOT count toward Supabase's pause clock — the
+# project paused on 2026-06-30 despite successful REST pings — so this uses a
+# real authenticated database connection instead.
+#
+# Requires one repo secret (Settings → Secrets and variables → Actions):
+#   SUPABASE_DB_URL  the Session-pooler connection string (IPv4), e.g.
+#   postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres
 
 on:
   schedule:
@@ -26,38 +30,30 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
 
-      - name: Ping Supabase REST API
+      - name: Ping the database directly (real Postgres activity)
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
           set -euo pipefail
 
-          if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_ANON_KEY}" ]; then
-            echo "::error::SUPABASE_URL and/or SUPABASE_ANON_KEY secrets are not set."
+          if [ -z "${SUPABASE_DB_URL}" ]; then
+            echo "::error::SUPABASE_DB_URL secret is not set."
             exit 1
           fi
 
-          TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          echo "Pinging keepalive at ${TS}"
-
-          STATUS=$(curl -sS -o /tmp/resp.txt -w "%{http_code}" \
-            -X POST "${SUPABASE_URL}/rest/v1/keepalive?on_conflict=id" \
-            -H "apikey: ${SUPABASE_ANON_KEY}" \
-            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
-            -H "Content-Type: application/json" \
-            -H "Prefer: resolution=merge-duplicates,return=minimal" \
-            -d "{\"id\": 1, \"last_ping\": \"${TS}\"}")
-
-          echo "HTTP ${STATUS}"
-          echo "Response: $(cat /tmp/resp.txt)"
-
-          if [ "${STATUS}" -lt 200 ] || [ "${STATUS}" -ge 300 ]; then
-            echo "::error::Keepalive ping failed (HTTP ${STATUS})."
-            exit 1
+          # A direct authenticated Postgres connection + query is the most
+          # literal "database request" there is — far more likely to register
+          # as activity than a PostgREST/API call, which Supabase did NOT count
+          # (the project paused on 2026-06-30 despite green REST pings).
+          if ! command -v psql >/dev/null 2>&1; then
+            echo "psql not found; installing postgresql-client..."
+            sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
           fi
 
-          echo "Keepalive ping succeeded."
+          psql "${SUPABASE_DB_URL}" -v ON_ERROR_STOP=1 -c \
+            "insert into keepalive (id, last_ping) values (1, now()) on conflict (id) do update set last_ping = now();"
+
+          echo "Direct Postgres keepalive succeeded."
 
       - name: Keep workflow enabled (commit only if repo idle ~45 days)
         run: |
